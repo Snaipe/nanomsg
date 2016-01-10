@@ -2,6 +2,7 @@
     Copyright (c) 2012-2014 Martin Sustrik  All rights reserved.
     Copyright (c) 2013 GoPivotal, Inc.  All rights reserved.
     Copyright 2015 Garrett D'Amore <garrett@damore.org>
+    Copyright (c) 2016 Franklin "Snaipe" Mathieu <franklinmathieu@gmail.com>
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"),
@@ -43,6 +44,7 @@
 #include "../utils/chunk.h"
 #include "../utils/msg.h"
 #include "../utils/attr.h"
+#include "../utils/fork.h"
 
 #include "../transports/inproc/inproc.h"
 #include "../transports/ipc/ipc.h"
@@ -152,6 +154,9 @@ struct nn_global {
     /*  Application name for statistics  */
     char hostname[64];
     char appname[64];
+
+    /* Forked status */
+    int forked;
 };
 
 /*  Singleton object containing the global state of the library. */
@@ -208,6 +213,9 @@ static void nn_global_init (void)
     /*  Check whether the library was already initialised. If so, do nothing. */
     if (self.socks)
         return;
+
+    /* Reset forked status */
+    self.forked = 0;
 
     /*  On Windows, initialise the socket library. */
 #if defined NN_HAVE_WINDOWS
@@ -279,6 +287,11 @@ static void nn_global_init (void)
     nn_global_add_socktype (nn_xsurveyor_socktype);
     nn_global_add_socktype (nn_bus_socktype);
     nn_global_add_socktype (nn_xbus_socktype);
+
+#ifndef NN_HAVE_WINDOWS
+    /* Register atfork handlers */
+    errno_assert(nn_setup_atfork_handlers () == 0);
+#endif
 
     /*  Start the worker threads. */
     nn_pool_init (&self.pool);
@@ -354,7 +367,8 @@ static void nn_global_term (void)
     nn_ctx_leave (&self.ctx);
 
     /*  Shut down the worker threads. */
-    nn_pool_term (&self.pool);
+    if (!self.forked)
+        nn_pool_term (&self.pool);
 
     /* Terminate ctx mutex */
     nn_ctx_term (&self.ctx);
@@ -1469,9 +1483,37 @@ void nn_global_rele_socket(struct nn_sock *sock)
 int nn_setopt (int option, const void *optval, size_t optvallen)
 {
     switch (option) {
+    case NN_FORK_STRATEGY:
+        nn_assert(optvallen == sizeof (int));
+        int idx = *(const int *) optval;
+        if (idx < 0 || idx >= NN_FORK_MAX_) {
+            errno = EINVAL;
+            break;
+        }
+        nn_fork_strategy = &nn_fork_strategies[idx];
+        return 0;
     default:
         errno = ENOPROTOOPT;
         break;
     }
     return -1;
+}
+
+int nn_global_postfork_cleanup ()
+{
+    int i;
+
+    nn_glock_lock();
+    self.forked = 1;
+
+    if (self.socks && self.nsocks) {
+        for (i = 0; i != NN_MAX_SOCKETS; ++i)
+            if (self.socks [i]) {
+                self.socks [i] = NULL;
+                self.nsocks--;
+            }
+    }
+    nn_global_term();
+
+    nn_glock_unlock();
 }
