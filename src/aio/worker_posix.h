@@ -65,3 +65,6 @@ void nn_worker_set_in (struct nn_worker *self, struct nn_worker_fd *fd);
 void nn_worker_reset_in (struct nn_worker *self, struct nn_worker_fd *fd);
 void nn_worker_set_out (struct nn_worker *self, struct nn_worker_fd *fd);
 void nn_worker_reset_out (struct nn_worker *self, struct nn_worker_fd *fd);
+
+/* Force clean up without terminating the underlying thread                   */
+void nn_worker_force_cleanup (struct nn_worker *self);
