@@ -1,5 +1,6 @@
 /*
     Copyright (c) 2012-2013 Martin Sustrik  All rights reserved.
+    Copyright (c) 2016 Franklin "Snaipe" Mathieu <franklinmathieu@gmail.com>
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"),
@@ -77,6 +78,16 @@ int nn_timerset_rm (struct nn_timerset *self, struct nn_timerset_hndl *hndl)
     first = nn_list_begin (&self->timeouts) == &hndl->list ? 1 : 0;
     nn_list_erase (&self->timeouts, &hndl->list);
     return first;
+}
+
+int nn_timerset_clear (struct nn_timerset *self)
+{
+    struct nn_list_item *elt = nn_list_begin (&self->timeouts);
+    while (elt != NULL) {
+        struct nn_list_item *next = nn_list_erase(&self->timeouts, elt);
+        nn_list_item_term(elt);
+        elt = next;
+    }
 }
 
 int nn_timerset_timeout (struct nn_timerset *self)

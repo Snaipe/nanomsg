@@ -1,5 +1,6 @@
 /*
     Copyright (c) 2012-2013 Martin Sustrik  All rights reserved.
+    Copyright (c) 2016 Franklin "Snaipe" Mathieu <franklinmathieu@gmail.com>
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"),
@@ -44,6 +45,7 @@ void nn_timerset_term (struct nn_timerset *self);
 int nn_timerset_add (struct nn_timerset *self, int timeout,
     struct nn_timerset_hndl *hndl);
 int nn_timerset_rm (struct nn_timerset *self, struct nn_timerset_hndl *hndl);
+int nn_timerset_clear (struct nn_timerset *self);
 int nn_timerset_timeout (struct nn_timerset *self);
 int nn_timerset_event (struct nn_timerset *self, struct nn_timerset_hndl **hndl);
 

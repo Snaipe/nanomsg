@@ -2,6 +2,7 @@
     Copyright (c) 2013-2014 Martin Sustrik  All rights reserved.
     Copyright (c) 2013 GoPivotal, Inc.  All rights reserved.
     Copyright 2015 Garrett D'Amore <garrett@damore.org>
+    Copyright (c) 2016 Franklin "Snaipe" Mathieu <franklinmathieu@gmail.com>
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"),
@@ -119,7 +120,9 @@ int nn_worker_init (struct nn_worker *self)
     return 0;
 }
 
-void nn_worker_force_cleanup (struct nn_worker *self) {
+void nn_worker_force_cleanup (struct nn_worker *self, enum nn_cleanup_opt opt) {
+    if (opt & NN_CLEAN_EMPTY)
+        nn_timerset_clear (&self->timerset);
     nn_timerset_term (&self->timerset);
     nn_poller_term (&self->poller);
     nn_efd_term (&self->efd);
@@ -140,7 +143,7 @@ void nn_worker_term (struct nn_worker *self)
     nn_thread_term (&self->thread);
 
     /*  Clean up. */
-    nn_worker_force_cleanup (self);
+    nn_worker_force_cleanup (self, NN_CLEAN_DEFAULT);
 }
 
 void nn_worker_execute (struct nn_worker *self, struct nn_worker_task *task)

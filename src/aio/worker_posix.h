@@ -1,6 +1,7 @@
 /*
     Copyright (c) 2013 Martin Sustrik  All rights reserved.
     Copyright (c) 2013 GoPivotal, Inc.  All rights reserved.
+    Copyright (c) 2016 Franklin "Snaipe" Mathieu <franklinmathieu@gmail.com>
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"),
@@ -66,5 +67,10 @@ void nn_worker_reset_in (struct nn_worker *self, struct nn_worker_fd *fd);
 void nn_worker_set_out (struct nn_worker *self, struct nn_worker_fd *fd);
 void nn_worker_reset_out (struct nn_worker *self, struct nn_worker_fd *fd);
 
+enum nn_cleanup_opt {
+    NN_CLEAN_DEFAULT = 0,
+    NN_CLEAN_EMPTY = 1,
+};
+
 /* Force clean up without terminating the underlying thread                   */
-void nn_worker_force_cleanup (struct nn_worker *self);
+void nn_worker_force_cleanup (struct nn_worker *self, enum nn_cleanup_opt opt);

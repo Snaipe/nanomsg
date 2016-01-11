@@ -60,7 +60,7 @@ static void nn_postfork_child_reset (void)
     struct nn_worker *w = &pool->worker;
 
     nn_mutex_unlock (&w->sync);
-    nn_worker_force_cleanup (w);
+    nn_worker_force_cleanup (w, NN_CLEAN_EMPTY);
 
     nn_global_postfork_cleanup ();
 }
