@@ -1,6 +1,7 @@
 /*
     Copyright (c) 2012-2013 Martin Sustrik  All rights reserved.
     Copyright (c) 2014 Achille Roussel All rights reserved.
+    Copyright (c) 2016 Franklin "Snaipe" Mathieu <franklinmathieu@gmail.com>
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"),
@@ -68,4 +69,9 @@ void nn_thread_term (struct nn_thread *self)
 
     rc = pthread_join (self->handle, NULL);
     errnum_assert (rc == 0, rc);
+}
+
+void nn_thread_unsafe_term (struct nn_thread *self)
+{
+    pthread_join (self->handle, NULL);
 }

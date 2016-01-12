@@ -121,8 +121,10 @@ int nn_worker_init (struct nn_worker *self)
 }
 
 void nn_worker_force_cleanup (struct nn_worker *self, enum nn_cleanup_opt opt) {
-    if (opt & NN_CLEAN_EMPTY)
+    if (opt & NN_CLEAN_EMPTY) {
+        nn_thread_unsafe_term (&self->thread);
         nn_timerset_clear (&self->timerset);
+    }
     nn_timerset_term (&self->timerset);
     nn_poller_term (&self->poller);
     nn_efd_term (&self->efd);
