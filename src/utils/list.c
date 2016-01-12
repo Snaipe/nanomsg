@@ -1,5 +1,6 @@
 /*
     Copyright (c) 2012 Martin Sustrik  All rights reserved.
+    Copyright (c) 2016 Franklin "Snaipe" Mathieu <franklinmathieu@gmail.com>
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"),
@@ -126,3 +127,14 @@ int nn_list_item_isinlist (struct nn_list_item *self)
     return self->prev == NN_LIST_NOTINLIST ? 0 : 1;
 }
 
+void nn_list_clear (struct nn_list *self, void (*dtor)(struct nn_list_item *))
+{
+    struct nn_list_item *elt = nn_list_begin (self);
+    while (elt != NULL) {
+        struct nn_list_item *next = nn_list_erase(self, elt);
+        nn_list_item_term(elt);
+        if (dtor)
+            dtor(elt);
+        elt = next;
+    }
+}

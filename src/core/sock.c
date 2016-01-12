@@ -2,6 +2,7 @@
     Copyright (c) 2012-2014 Martin Sustrik  All rights reserved.
     Copyright (c) 2013 GoPivotal, Inc.  All rights reserved.
     Copyright 2015 Garrett D'Amore <garrett@damore.org>
+    Copyright (c) 2016 Franklin "Snaipe" Mathieu <franklinmathieu@gmail.com>
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"),
@@ -207,7 +208,6 @@ void nn_sock_stop (struct nn_sock *self)
 int nn_sock_term (struct nn_sock *self)
 {
     int rc;
-    int i;
 
     /*  NOTE: nn_sock_stop must have already been called. */
 
@@ -242,20 +242,59 @@ int nn_sock_term (struct nn_sock *self)
     /*  At this point, we can be reasonably certain that no other thread
         has any references to the socket. */
 
+    nn_sock_unsafe_cleanup(self, NN_CLEAN_DEFAULT);
+
+    return 0;
+}
+
+void nn_release_endpoint (struct nn_list_item *it)
+{
+    struct nn_ep *ep = nn_cont (it, struct nn_ep, item);
+    /* TODO: force cleanup the endpoint */
+    nn_free (ep);
+}
+
+void nn_release_stopped_endpoint (struct nn_list_item *it)
+{
+    struct nn_ep *ep = nn_cont (it, struct nn_ep, item);
+    nn_free (ep);
+}
+
+void nn_sock_unsafe_cleanup (struct nn_sock *self, enum nn_cleanup_opt opts)
+{
+    /*  Cleanup. */
+
+    if (opts & NN_CLEAN_EMPTY) {
+        /* TODO: Force destroy the socket base */
+        /* self->sockbase->vfptr->destroy (self->sockbase); */
+        self->state = NN_SOCK_STATE_FINI;
+
+        if (!(self->socktype->flags & NN_SOCKTYPE_FLAG_NORECV)) {
+            nn_efd_term (&self->rcvfd);
+        }
+        if (!(self->socktype->flags & NN_SOCKTYPE_FLAG_NOSEND)) {
+            nn_efd_term (&self->sndfd);
+        }
+
+        nn_fsm_unsafe_stop (&self->fsm);
+    }
+
     nn_fsm_stopped_noevent (&self->fsm);
     nn_fsm_term (&self->fsm);
     nn_sem_term (&self->termsem);
+    if (opts & NN_CLEAN_EMPTY) {
+        nn_list_clear (&self->sdeps, nn_release_stopped_endpoint);
+        nn_list_clear (&self->eps, nn_release_endpoint);
+    }
     nn_list_term (&self->sdeps);
     nn_list_term (&self->eps);
     nn_clock_term (&self->clock);
     nn_ctx_term (&self->ctx);
 
     /*  Destroy any optsets associated with the socket. */
-    for (i = 0; i != NN_MAX_TRANSPORT; ++i)
+    for (int i = 0; i != NN_MAX_TRANSPORT; ++i)
         if (self->optsets [i])
             self->optsets [i]->vfptr->destroy (self->optsets [i]);
-
-    return 0;
 }
 
 struct nn_ctx *nn_sock_getctx (struct nn_sock *self)

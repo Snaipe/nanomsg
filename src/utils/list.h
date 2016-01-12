@@ -1,5 +1,6 @@
 /*
     Copyright (c) 2012 Martin Sustrik  All rights reserved.
+    Copyright (c) 2016 Franklin "Snaipe" Mathieu <franklinmathieu@gmail.com>
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"),
@@ -82,5 +83,8 @@ void nn_list_item_term (struct nn_list_item *self);
 
 /*  Returns 1 is the item is part of a list, 0 otherwise. */
 int nn_list_item_isinlist (struct nn_list_item *self);
+
+/*  Removes and release all items in the list */
+void nn_list_clear (struct nn_list *self, void (*dtor)(struct nn_list_item *));
 
 #endif

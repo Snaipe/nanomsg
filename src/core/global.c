@@ -1499,6 +1499,24 @@ int nn_setopt (int option, const void *optval, size_t optvallen)
     return -1;
 }
 
+int nn_global_lock_all_sockets (void)
+{
+    if (self.socks && self.nsocks) {
+        for (int i = 0; i != NN_MAX_SOCKETS; ++i)
+            if (self.socks [i])
+                nn_ctx_enter (nn_sock_getctx (self.socks [i]));
+    }
+}
+
+int nn_global_unlock_all_sockets (void)
+{
+    if (self.socks && self.nsocks) {
+        for (int i = 0; i != NN_MAX_SOCKETS; ++i)
+            if (self.socks [i])
+                nn_ctx_leave (nn_sock_getctx (self.socks [i]));
+    }
+}
+
 int nn_global_postfork_cleanup ()
 {
     int i;
@@ -1509,6 +1527,8 @@ int nn_global_postfork_cleanup ()
     if (self.socks && self.nsocks) {
         for (i = 0; i != NN_MAX_SOCKETS; ++i)
             if (self.socks [i]) {
+                nn_sock_unsafe_cleanup (self.socks [i], NN_CLEAN_EMPTY);
+                nn_free (self.socks [i]);
                 self.socks [i] = NULL;
                 self.nsocks--;
             }

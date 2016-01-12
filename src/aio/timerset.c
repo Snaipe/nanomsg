@@ -82,12 +82,7 @@ int nn_timerset_rm (struct nn_timerset *self, struct nn_timerset_hndl *hndl)
 
 int nn_timerset_clear (struct nn_timerset *self)
 {
-    struct nn_list_item *elt = nn_list_begin (&self->timeouts);
-    while (elt != NULL) {
-        struct nn_list_item *next = nn_list_erase(&self->timeouts, elt);
-        nn_list_item_term(elt);
-        elt = next;
-    }
+    nn_list_clear (&self->timeouts, NULL);
 }
 
 int nn_timerset_timeout (struct nn_timerset *self)

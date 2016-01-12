@@ -120,7 +120,7 @@ int nn_worker_init (struct nn_worker *self)
     return 0;
 }
 
-void nn_worker_force_cleanup (struct nn_worker *self, enum nn_cleanup_opt opt) {
+void nn_worker_unsafe_cleanup (struct nn_worker *self, enum nn_cleanup_opt opt) {
     if (opt & NN_CLEAN_EMPTY) {
         nn_thread_unsafe_term (&self->thread);
         nn_timerset_clear (&self->timerset);
@@ -145,7 +145,7 @@ void nn_worker_term (struct nn_worker *self)
     nn_thread_term (&self->thread);
 
     /*  Clean up. */
-    nn_worker_force_cleanup (self, NN_CLEAN_DEFAULT);
+    nn_worker_unsafe_cleanup (self, NN_CLEAN_DEFAULT);
 }
 
 void nn_worker_execute (struct nn_worker *self, struct nn_worker_task *task)

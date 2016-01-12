@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2012-2013 Martin Sustrik  All rights reserved.
+    Copyright (c) 2016 Franklin "Snaipe" Mathieu <franklinmathieu@gmail.com>
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"),
@@ -20,21 +20,15 @@
     IN THE SOFTWARE.
 */
 
-#ifndef NN_GLOBAL_INCLUDED
-#define NN_GLOBAL_INCLUDED
+#ifndef NN_CLEANUP_INCLUDED
+#define NN_CLEANUP_INCLUDED
 
-/*  Provides access to the list of available transports. */
-struct nn_transport *nn_global_transport (int id);
+enum nn_cleanup_opt {
+    /* Don't do anything more than terminating the resources */
+    NN_CLEAN_DEFAULT = 0,
 
-/*  Returns the global worker thread pool. */
-struct nn_pool *nn_global_getpool ();
-int nn_global_print_errors();
-
-/* Force clean up nanomsg after a fork, when everything is broken. */
-int nn_global_postfork_cleanup ();
-
-/* Enter & leave the context of each socket. */
-int nn_global_lock_all_sockets (void);
-int nn_global_unlock_all_sockets (void);
+    /* Manually empty and release the contents of any internal collection */
+    NN_CLEAN_EMPTY = 1,
+};
 
 #endif

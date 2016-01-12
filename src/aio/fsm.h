@@ -1,5 +1,6 @@
 /*
     Copyright (c) 2013 Martin Sustrik  All rights reserved.
+    Copyright (c) 2016 Franklin "Snaipe" Mathieu <franklinmathieu@gmail.com>
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"),
@@ -112,6 +113,11 @@ void nn_fsm_raiseto (struct nn_fsm *self, struct nn_fsm *dst,
     Used in worker threads and timers, shouldn't be used by others
     use nn_fsm_action/nn_fsm_raise/nn_fsm_raiseto instread*/
 void nn_fsm_feed (struct nn_fsm *self, int src, int type, void *srcptr);
+
+/*  Stops the FSM without shutting it down safely.
+    NOTE: This function is here to allow nanomsg to reset its state after
+    a fork, when *everything* is broken. USE WITH CARE. */
+void nn_fsm_unsafe_stop (struct nn_fsm *self);
 
 #endif
 

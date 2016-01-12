@@ -1,5 +1,6 @@
 /*
     Copyright (c) 2012-2013 Martin Sustrik  All rights reserved.
+    Copyright (c) 2016 Franklin "Snaipe" Mathieu <franklinmathieu@gmail.com>
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"),
@@ -203,6 +204,13 @@ void nn_sock_stat_increment(struct nn_sock *self, int name, int64_t increment);
 /*  Holds and releases. */
 int nn_sock_hold (struct nn_sock *self);
 void nn_sock_rele (struct nn_sock *self);
+
+/*  Force cleanup the socket structure.
+    NOTE: This function is here to allow nanomsg to reset its state after
+    a fork, when *everything* is broken.
+    The function assumes that locks on the socket are held.
+    USE WITH CARE. */
+void nn_sock_unsafe_cleanup(struct nn_sock *self, enum nn_cleanup_opt opts);
 
 #endif
 

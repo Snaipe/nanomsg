@@ -1,5 +1,6 @@
 /*
     Copyright (c) 2013 Martin Sustrik  All rights reserved.
+    Copyright (c) 2016 Franklin "Snaipe" Mathieu <franklinmathieu@gmail.com>
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"),
@@ -126,8 +127,13 @@ void nn_fsm_stop (struct nn_fsm *self)
     if (self->state != NN_FSM_STATE_ACTIVE)
         return;
 
-    self->state = NN_FSM_STATE_STOPPING;
+    nn_fsm_unsafe_stop (self);
     self->shutdown_fn (self, NN_FSM_ACTION, NN_FSM_STOP, NULL);
+}
+
+void nn_fsm_unsafe_stop (struct nn_fsm *self)
+{
+    self->state = NN_FSM_STATE_STOPPING;
 }
 
 void nn_fsm_stopped (struct nn_fsm *self, int type)
