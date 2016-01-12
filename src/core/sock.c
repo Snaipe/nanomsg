@@ -35,6 +35,7 @@
 #include "../utils/fast.h"
 #include "../utils/alloc.h"
 #include "../utils/msg.h"
+#include "../utils/cleanup.h"
 
 #include <limits.h>
 
@@ -262,8 +263,9 @@ void nn_release_stopped_endpoint (struct nn_list_item *it)
 
 void nn_sock_unsafe_cleanup (struct nn_sock *self, enum nn_cleanup_opt opts)
 {
-    /*  Cleanup. */
+    int i;
 
+    /*  Cleanup. */
     if (opts & NN_CLEAN_EMPTY) {
         /* TODO: Force destroy the socket base */
         /* self->sockbase->vfptr->destroy (self->sockbase); */
@@ -292,7 +294,7 @@ void nn_sock_unsafe_cleanup (struct nn_sock *self, enum nn_cleanup_opt opts)
     nn_ctx_term (&self->ctx);
 
     /*  Destroy any optsets associated with the socket. */
-    for (int i = 0; i != NN_MAX_TRANSPORT; ++i)
+    for (i = 0; i != NN_MAX_TRANSPORT; ++i)
         if (self->optsets [i])
             self->optsets [i]->vfptr->destroy (self->optsets [i]);
 }

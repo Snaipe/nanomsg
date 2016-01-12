@@ -24,6 +24,7 @@
 #include <pthread.h>
 #include "fork.h"
 #include "glock.h"
+#include "cleanup.h"
 #include "../core/global.h"
 #include "../aio/pool.h"
 

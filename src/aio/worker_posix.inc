@@ -30,6 +30,7 @@
 #include "../utils/cont.h"
 #include "../utils/attr.h"
 #include "../utils/queue.h"
+#include "../utils/cleanup.h"
 
 /*  Private functions. */
 static void nn_worker_routine (void *arg);

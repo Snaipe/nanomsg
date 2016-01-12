@@ -44,7 +44,11 @@
 #include "../utils/chunk.h"
 #include "../utils/msg.h"
 #include "../utils/attr.h"
+#include "../utils/cleanup.h"
+
+#ifndef NN_HAVE_WINDOWS
 #include "../utils/fork.h"
+#endif
 
 #include "../transports/inproc/inproc.h"
 #include "../transports/ipc/ipc.h"
@@ -1482,15 +1486,19 @@ void nn_global_rele_socket(struct nn_sock *sock)
 
 int nn_setopt (int option, const void *optval, size_t optvallen)
 {
+    int idx;
+
     switch (option) {
     case NN_FORK_STRATEGY:
         nn_assert(optvallen == sizeof (int));
-        int idx = *(const int *) optval;
+        idx = *(const int *) optval;
         if (idx < 0 || idx >= NN_FORK_MAX_) {
             errno = EINVAL;
             break;
         }
+#ifndef NN_HAVE_WINDOWS
         nn_fork_strategy = &nn_fork_strategies[idx];
+#endif
         return 0;
     default:
         errno = ENOPROTOOPT;
@@ -1501,8 +1509,10 @@ int nn_setopt (int option, const void *optval, size_t optvallen)
 
 int nn_global_lock_all_sockets (void)
 {
+    int i;
+
     if (self.socks && self.nsocks) {
-        for (int i = 0; i != NN_MAX_SOCKETS; ++i)
+        for (i = 0; i != NN_MAX_SOCKETS; ++i)
             if (self.socks [i])
                 nn_ctx_enter (nn_sock_getctx (self.socks [i]));
     }
@@ -1510,8 +1520,10 @@ int nn_global_lock_all_sockets (void)
 
 int nn_global_unlock_all_sockets (void)
 {
+    int i;
+
     if (self.socks && self.nsocks) {
-        for (int i = 0; i != NN_MAX_SOCKETS; ++i)
+        for (i = 0; i != NN_MAX_SOCKETS; ++i)
             if (self.socks [i])
                 nn_ctx_leave (nn_sock_getctx (self.socks [i]));
     }
