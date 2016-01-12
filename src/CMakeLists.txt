@@ -90,6 +90,7 @@ set (NN_SOURCES
     utils/chunk.c
     utils/chunkref.h
     utils/chunkref.c
+    utils/cleanup.h
     utils/clock.h
     utils/clock.c
     utils/closefd.h
