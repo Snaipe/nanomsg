@@ -27,6 +27,7 @@
 #include "../utils/thread.h"
 #include "../utils/efd.h"
 #include "../utils/cleanup.h"
+#include "../utils/sem.h"
 
 #include "poller.h"
 
@@ -54,11 +55,14 @@ struct nn_worker {
     struct nn_mutex sync;
     struct nn_queue tasks;
     struct nn_queue_item stop;
+    struct nn_queue_item pause;
     struct nn_efd efd;
     struct nn_poller poller;
     struct nn_poller_hndl efd_hndl;
     struct nn_timerset timerset;
     struct nn_thread thread;
+    struct nn_sem pause_sem;
+    struct nn_sem resume_sem;
 };
 
 void nn_worker_add_fd (struct nn_worker *self, int s, struct nn_worker_fd *fd);
@@ -72,3 +76,6 @@ void nn_worker_reset_out (struct nn_worker *self, struct nn_worker_fd *fd);
    NOTE: This function is here to allow nanomsg to reset its state after
    a fork, when *everything* is broken. USE WITH CARE. */
 void nn_worker_unsafe_cleanup (struct nn_worker *self, enum nn_cleanup_opt opt);
+
+void nn_worker_pause (struct nn_worker *self);
+void nn_worker_resume (struct nn_worker *self);

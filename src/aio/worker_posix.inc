@@ -112,11 +112,14 @@ int nn_worker_init (struct nn_worker *self)
     nn_mutex_init (&self->sync);
     nn_queue_init (&self->tasks);
     nn_queue_item_init (&self->stop);
+    nn_queue_item_init (&self->pause);
     nn_poller_init (&self->poller);
     nn_poller_add (&self->poller, nn_efd_getfd (&self->efd), &self->efd_hndl);
     nn_poller_set_in (&self->poller, &self->efd_hndl);
     nn_timerset_init (&self->timerset);
     nn_thread_init (&self->thread, nn_worker_routine, self);
+    nn_sem_init(&self->pause_sem);
+    nn_sem_init(&self->resume_sem);
 
     return 0;
 }
@@ -130,8 +133,15 @@ void nn_worker_unsafe_cleanup (struct nn_worker *self, enum nn_cleanup_opt opt) 
     nn_poller_term (&self->poller);
     nn_efd_term (&self->efd);
     nn_queue_item_term (&self->stop);
+    nn_queue_item_term (&self->pause);
     nn_queue_term (&self->tasks);
     nn_mutex_term (&self->sync);
+
+    nn_sem_post(&self->pause_sem);
+    nn_sem_term(&self->pause_sem);
+
+    nn_sem_post(&self->resume_sem);
+    nn_sem_term(&self->resume_sem);
 }
 
 void nn_worker_term (struct nn_worker *self)
@@ -162,6 +172,27 @@ void nn_worker_cancel (struct nn_worker *self, struct nn_worker_task *task)
     nn_mutex_lock (&self->sync);
     nn_queue_remove (&self->tasks, &task->item);
     nn_mutex_unlock (&self->sync);
+}
+
+void nn_worker_pause (struct nn_worker *self)
+{
+    /*  Ask worker thread to pause. */
+    nn_mutex_lock (&self->sync);
+    nn_queue_push (&self->tasks, &self->pause);
+    nn_efd_signal (&self->efd);
+    nn_mutex_unlock (&self->sync);
+
+    /*  Wait until the thread is paused  */
+    nn_sem_wait (&self->pause_sem);
+}
+
+void nn_worker_resume (struct nn_worker *self)
+{
+    /*  Let the worker resume  */
+    nn_sem_post (&self->resume_sem);
+
+    /*  Wait until the thread is resumed  */
+    nn_sem_wait (&self->pause_sem);
 }
 
 static void nn_worker_routine (void *arg)
@@ -228,6 +259,16 @@ static void nn_worker_routine (void *arg)
                     item = nn_queue_pop (&tasks);
                     if (nn_slow (!item))
                         break;
+
+                    /*  If the worker thread is asked to pause, do so. */
+                    if (nn_slow (item == &self->pause)) {
+                        /*  Notify the calling thread that the worker paused  */
+                        nn_sem_post(&self->pause_sem);
+                        /*  Pause until the resume semaphore is unlocked  */
+                        nn_sem_wait(&self->resume_sem);
+                        nn_sem_post(&self->pause_sem);
+                        continue;
+                    }
 
                     /*  If the worker thread is asked to stop, do so. */
                     if (nn_slow (item == &self->stop)) {

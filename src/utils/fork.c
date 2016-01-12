@@ -36,7 +36,7 @@ static void nn_prefork_reset (void)
     struct nn_pool *pool = nn_global_getpool();
     struct nn_worker *w = &pool->worker;
 
-    nn_mutex_lock (&w->sync);
+    nn_worker_pause (w);
 
     nn_glock_lock ();
     nn_global_lock_all_sockets ();
@@ -44,26 +44,30 @@ static void nn_prefork_reset (void)
 
 static void nn_postfork_parent_reset (void)
 {
-    nn_global_unlock_all_sockets ();
-    nn_glock_unlock ();
-
     /* Unlock the worker */
     struct nn_pool *pool = nn_global_getpool();
     struct nn_worker *w = &pool->worker;
 
-    nn_mutex_unlock (&w->sync);
+    nn_global_unlock_all_sockets ();
+    nn_glock_unlock ();
+
+    nn_worker_resume (w);
+
 }
 
 static void nn_postfork_child_reset (void)
 {
-    nn_global_unlock_all_sockets ();
-    nn_glock_unlock ();
-
     /* Unlock the worker and reset */
     struct nn_pool *pool = nn_global_getpool();
     struct nn_worker *w = &pool->worker;
 
-    nn_mutex_unlock (&w->sync);
+    nn_global_unlock_all_sockets ();
+    nn_glock_unlock ();
+
+    /* This actually won't resume the thread, but simply release
+       the lock */
+    nn_sem_post (&w->pause_sem);
+    nn_worker_resume (w);
     nn_worker_unsafe_cleanup (w, NN_CLEAN_EMPTY);
 
     nn_global_postfork_cleanup ();
