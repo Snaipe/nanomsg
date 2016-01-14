@@ -1512,6 +1512,7 @@ int nn_setopt (int option, const void *optval, size_t optvallen)
 int nn_global_lock_all_sockets (void)
 {
     int i;
+    nn_assert(nn_is_glock_held());
 
     if (self.socks && self.nsocks) {
         for (i = 0; i != NN_MAX_SOCKETS; ++i)
@@ -1523,6 +1524,7 @@ int nn_global_lock_all_sockets (void)
 int nn_global_unlock_all_sockets (void)
 {
     int i;
+    nn_assert(nn_is_glock_held());
 
     if (self.socks && self.nsocks) {
         for (i = 0; i != NN_MAX_SOCKETS; ++i)
