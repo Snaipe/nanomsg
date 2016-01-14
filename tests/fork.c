@@ -28,7 +28,6 @@
 #include "testutil.h"
 
 #include <unistd.h>
-#include <assert.h>
 
 /*  Test behaviour on fork. */
 
@@ -60,11 +59,11 @@ int main ()
     test_bind (sb, SOCKET_ADDRESS);
 
     pid_t pid = fork();
-    assert(pid != -1);
+    nn_assert(pid != -1);
 
     if (pid == 0) {
-        assert(nn_close(sb) == -1);
-        assert(errno == ETERM);
+        nn_assert(nn_close(sb) == -1);
+        nn_assert(errno == ETERM);
 
         /* Try to connect on the child's end */
         sc = test_socket (AF_SP, NN_REP);
