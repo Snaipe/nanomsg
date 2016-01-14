@@ -1486,6 +1486,7 @@ void nn_global_rele_socket(struct nn_sock *sock)
 
 int nn_setopt (int option, const void *optval, size_t optvallen)
 {
+    int rc = -1;
     int idx;
 
     switch (option) {
@@ -1499,12 +1500,13 @@ int nn_setopt (int option, const void *optval, size_t optvallen)
 #ifndef NN_HAVE_WINDOWS
         nn_fork_strategy = &nn_fork_strategies[idx];
 #endif
-        return 0;
+        rc = 0;
+        break;
     default:
         errno = ENOPROTOOPT;
         break;
     }
-    return -1;
+    return rc;
 }
 
 int nn_global_lock_all_sockets (void)
