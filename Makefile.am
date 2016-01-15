@@ -339,8 +339,8 @@ libnanomsg_la_SOURCES = \
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libnanomsg.pc
 
-libnanomsg_la_LDFLAGS = -no-undefined -version-info @NN_LIBTOOL_VERSION@
-libnanomsg_la_CFLAGS = -DNN_EXPORTS
+libnanomsg_la_LDFLAGS = -fPIC -no-undefined -version-info @NN_LIBTOOL_VERSION@
+libnanomsg_la_CFLAGS = -fPIC -DNN_EXPORTS
 
 ################################################################################
 #  documentation                                                               #
