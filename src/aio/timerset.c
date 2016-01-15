@@ -80,7 +80,7 @@ int nn_timerset_rm (struct nn_timerset *self, struct nn_timerset_hndl *hndl)
     return first;
 }
 
-int nn_timerset_clear (struct nn_timerset *self)
+void nn_timerset_clear (struct nn_timerset *self)
 {
     nn_list_clear (&self->timeouts, NULL);
 }

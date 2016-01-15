@@ -31,10 +31,10 @@ struct nn_pool *nn_global_getpool ();
 int nn_global_print_errors();
 
 /* Force clean up nanomsg after a fork, when everything is broken. */
-int nn_global_postfork_cleanup ();
+void nn_global_postfork_cleanup (void);
 
 /* Enter & leave the context of each socket. */
-int nn_global_lock_all_sockets (void);
-int nn_global_unlock_all_sockets (void);
+void nn_global_lock_all_sockets (void);
+void nn_global_unlock_all_sockets (void);
 
 #endif

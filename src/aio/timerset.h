@@ -45,7 +45,7 @@ void nn_timerset_term (struct nn_timerset *self);
 int nn_timerset_add (struct nn_timerset *self, int timeout,
     struct nn_timerset_hndl *hndl);
 int nn_timerset_rm (struct nn_timerset *self, struct nn_timerset_hndl *hndl);
-int nn_timerset_clear (struct nn_timerset *self);
+void nn_timerset_clear (struct nn_timerset *self);
 int nn_timerset_timeout (struct nn_timerset *self);
 int nn_timerset_event (struct nn_timerset *self, struct nn_timerset_hndl **hndl);
 

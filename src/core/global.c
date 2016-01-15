@@ -1509,7 +1509,7 @@ int nn_setopt (int option, const void *optval, size_t optvallen)
     return rc;
 }
 
-int nn_global_lock_all_sockets (void)
+void nn_global_lock_all_sockets (void)
 {
     int i;
     nn_assert(nn_is_glock_held());
@@ -1521,7 +1521,7 @@ int nn_global_lock_all_sockets (void)
     }
 }
 
-int nn_global_unlock_all_sockets (void)
+void nn_global_unlock_all_sockets (void)
 {
     int i;
     nn_assert(nn_is_glock_held());
@@ -1533,7 +1533,7 @@ int nn_global_unlock_all_sockets (void)
     }
 }
 
-int nn_global_postfork_cleanup ()
+void nn_global_postfork_cleanup (void)
 {
     int i;
 
