@@ -45,7 +45,7 @@ struct nn_excl {
 };
 
 void nn_excl_init (struct nn_excl *self);
-void nn_excl_term (struct nn_excl *self);
+void nn_excl_term (struct nn_excl *self, enum nn_cleanup_opt cleanopt);
 int nn_excl_add (struct nn_excl *self, struct nn_pipe *pipe);
 void nn_excl_rm (struct nn_excl *self, struct nn_pipe *pipe);
 void nn_excl_in (struct nn_excl *self, struct nn_pipe *pipe);

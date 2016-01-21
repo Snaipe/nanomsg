@@ -25,6 +25,7 @@
 
 #include "fsm.h"
 #include "worker.h"
+#include "../utils/cleanup.h"
 
 #define NN_TIMER_TIMEOUT 1
 #define NN_TIMER_STOPPED 2
@@ -41,7 +42,7 @@ struct nn_timer {
 };
 
 void nn_timer_init (struct nn_timer *self, int src, struct nn_fsm *owner);
-void nn_timer_term (struct nn_timer *self);
+void nn_timer_term (struct nn_timer *self, enum nn_cleanup_opt cleanopt);
 
 int nn_timer_isidle (struct nn_timer *self);
 void nn_timer_start (struct nn_timer *self, int timeout);

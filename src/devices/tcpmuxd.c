@@ -367,7 +367,7 @@ static int nn_tcpmuxd_send_fd (int s, int fd)
 
     /*  Sending the file descriptor to other process acts as dup().
         Therefore, we have to close the local copy of the file descriptor. */
-    nn_closefd (fd);
+    nn_closefd (fd, NN_CLEAN_DEFAULT);
 
     return 0;
 }

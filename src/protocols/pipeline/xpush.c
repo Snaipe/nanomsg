@@ -46,10 +46,11 @@ struct nn_xpush {
 /*  Private functions. */
 static void nn_xpush_init (struct nn_xpush *self,
     const struct nn_sockbase_vfptr *vfptr, void *hint);
-static void nn_xpush_term (struct nn_xpush *self);
+static void nn_xpush_term (struct nn_xpush *self, enum nn_cleanup_opt cleanopt);
 
 /*  Implementation of nn_sockbase's virtual functions. */
-static void nn_xpush_destroy (struct nn_sockbase *self);
+static void nn_xpush_destroy (struct nn_sockbase *self,
+    enum nn_cleanup_opt cleanopt);
 static int nn_xpush_add (struct nn_sockbase *self, struct nn_pipe *pipe);
 static void nn_xpush_rm (struct nn_sockbase *self, struct nn_pipe *pipe);
 static void nn_xpush_in (struct nn_sockbase *self, struct nn_pipe *pipe);
@@ -81,19 +82,19 @@ static void nn_xpush_init (struct nn_xpush *self,
     nn_lb_init (&self->lb);
 }
 
-static void nn_xpush_term (struct nn_xpush *self)
+static void nn_xpush_term (struct nn_xpush *self, enum nn_cleanup_opt cleanopt)
 {
     nn_lb_term (&self->lb);
     nn_sockbase_term (&self->sockbase);
 }
 
-void nn_xpush_destroy (struct nn_sockbase *self)
+void nn_xpush_destroy (struct nn_sockbase *self, enum nn_cleanup_opt cleanopt)
 {
     struct nn_xpush *xpush;
 
     xpush = nn_cont (self, struct nn_xpush, sockbase);
 
-    nn_xpush_term (xpush);
+    nn_xpush_term (xpush, cleanopt);
     nn_free (xpush);
 }
 

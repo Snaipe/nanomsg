@@ -81,7 +81,8 @@ struct nn_bws {
 
 /*  nn_epbase virtual interface implementation. */
 static void nn_bws_stop (struct nn_epbase *self);
-static void nn_bws_destroy (struct nn_epbase *self);
+static void nn_bws_destroy (struct nn_epbase *self,
+    enum nn_cleanup_opt cleanopt);
 const struct nn_epbase_vfptr nn_bws_epbase_vfptr = {
     nn_bws_stop,
     nn_bws_destroy
@@ -168,18 +169,20 @@ static void nn_bws_stop (struct nn_epbase *self)
     nn_fsm_stop (&bws->fsm);
 }
 
-static void nn_bws_destroy (struct nn_epbase *self)
+static void nn_bws_destroy (struct nn_epbase *self,
+    enum nn_cleanup_opt cleanopt)
 {
     struct nn_bws *bws;
 
     bws = nn_cont (self, struct nn_bws, epbase);
 
-    nn_assert_state (bws, NN_BWS_STATE_IDLE);
+    if (nn_fast (!(cleanopt & NN_CLEAN_NO_CHECK)))
+        nn_assert_state (bws, NN_BWS_STATE_IDLE);
     nn_list_term (&bws->awss);
     nn_assert (bws->aws == NULL);
-    nn_usock_term (&bws->usock);
+    nn_usock_term (&bws->usock, cleanopt);
     nn_epbase_term (&bws->epbase);
-    nn_fsm_term (&bws->fsm);
+    nn_fsm_term (&bws->fsm, cleanopt);
 
     nn_free (bws);
 }
@@ -200,7 +203,7 @@ static void nn_bws_shutdown (struct nn_fsm *self, int src, int type,
     if (nn_slow (bws->state == NN_BWS_STATE_STOPPING_AWS)) {
         if (!nn_aws_isidle (bws->aws))
             return;
-        nn_aws_term (bws->aws);
+        nn_aws_term (bws->aws, NN_CLEAN_DEFAULT);
         nn_free (bws->aws);
         bws->aws = NULL;
         nn_usock_stop (&bws->usock);
@@ -222,7 +225,7 @@ static void nn_bws_shutdown (struct nn_fsm *self, int src, int type,
         nn_assert (src == NN_BWS_SRC_AWS && type == NN_AWS_STOPPED);
         aws = (struct nn_aws *) srcptr;
         nn_list_erase (&bws->awss, &aws->item);
-        nn_aws_term (aws);
+        nn_aws_term (aws, NN_CLEAN_DEFAULT);
         nn_free (aws);
 
         /*  If there are no more aws state machines, we can stop the whole
@@ -307,7 +310,7 @@ static void nn_bws_handler (struct nn_fsm *self, int src, int type,
             return;
         case NN_AWS_STOPPED:
             nn_list_erase (&bws->awss, &aws->item);
-            nn_aws_term (aws);
+            nn_aws_term (aws, NN_CLEAN_DEFAULT);
             nn_free (aws);
             return;
         default:

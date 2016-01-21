@@ -82,7 +82,7 @@ int nn_timerset_rm (struct nn_timerset *self, struct nn_timerset_hndl *hndl)
 
 void nn_timerset_clear (struct nn_timerset *self)
 {
-    nn_list_clear (&self->timeouts, NULL);
+    nn_list_clear (&self->timeouts, 0, NULL);
 }
 
 int nn_timerset_timeout (struct nn_timerset *self)

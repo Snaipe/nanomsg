@@ -130,8 +130,8 @@ void nn_worker_unsafe_cleanup (struct nn_worker *self, enum nn_cleanup_opt opt) 
         nn_timerset_clear (&self->timerset);
     }
     nn_timerset_term (&self->timerset);
-    nn_poller_term (&self->poller);
-    nn_efd_term (&self->efd);
+    nn_poller_term (&self->poller, opt);
+    nn_efd_term (&self->efd, opt);
     nn_queue_item_term (&self->stop);
     nn_queue_item_term (&self->pause);
     nn_queue_term (&self->tasks);

@@ -31,6 +31,7 @@
 #include "../../aio/usock.h"
 
 #include "../../utils/list.h"
+#include "../../utils/cleanup.h"
 
 /*  State machine handling accepted TCP sockets. */
 
@@ -70,7 +71,7 @@ struct nn_atcp {
 
 void nn_atcp_init (struct nn_atcp *self, int src,
     struct nn_epbase *epbase, struct nn_fsm *owner);
-void nn_atcp_term (struct nn_atcp *self);
+void nn_atcp_term (struct nn_atcp *self, enum nn_cleanup_opt cleanopt);
 
 int nn_atcp_isidle (struct nn_atcp *self);
 void nn_atcp_start (struct nn_atcp *self, struct nn_usock *listener);

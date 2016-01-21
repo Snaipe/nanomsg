@@ -43,7 +43,7 @@ struct nn_xbus {
 
 void nn_xbus_init (struct nn_xbus *self,
     const struct nn_sockbase_vfptr *vfptr, void *hint);
-void nn_xbus_term (struct nn_xbus *self);
+void nn_xbus_term (struct nn_xbus *self, enum nn_cleanup_opt cleanopt);
 
 int nn_xbus_add (struct nn_sockbase *self, struct nn_pipe *pipe);
 void nn_xbus_rm (struct nn_sockbase *self, struct nn_pipe *pipe);

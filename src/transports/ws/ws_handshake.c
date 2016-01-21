@@ -169,13 +169,15 @@ void nn_ws_handshake_init (struct nn_ws_handshake *self, int src,
     self->pipebase = NULL;
 }
 
-void nn_ws_handshake_term (struct nn_ws_handshake *self)
+void nn_ws_handshake_term (struct nn_ws_handshake *self,
+    enum nn_cleanup_opt cleanopt)
 {
-    nn_assert_state (self, NN_WS_HANDSHAKE_STATE_IDLE);
+    if (nn_fast (!(cleanopt & NN_CLEAN_NO_CHECK)))
+        nn_assert_state (self, NN_WS_HANDSHAKE_STATE_IDLE);
 
     nn_fsm_event_term (&self->done);
-    nn_timer_term (&self->timer);
-    nn_fsm_term (&self->fsm);
+    nn_timer_term (&self->timer, cleanopt);
+    nn_fsm_term (&self->fsm, cleanopt);
 }
 
 int nn_ws_handshake_isidle (struct nn_ws_handshake *self)

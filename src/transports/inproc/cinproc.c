@@ -43,7 +43,8 @@
 
 /*  Implementation of nn_epbase callback interface. */
 static void nn_cinproc_stop (struct nn_epbase *self);
-static void nn_cinproc_destroy (struct nn_epbase *self);
+static void nn_cinproc_destroy (struct nn_epbase *self,
+    enum nn_cleanup_opt cleanopt);
 static const struct nn_epbase_vfptr nn_cinproc_vfptr = {
     nn_cinproc_stop,
     nn_cinproc_destroy
@@ -90,14 +91,15 @@ static void nn_cinproc_stop (struct nn_epbase *self)
     nn_fsm_stop (&cinproc->fsm);
 }
 
-static void nn_cinproc_destroy (struct nn_epbase *self)
+static void nn_cinproc_destroy (struct nn_epbase *self,
+    enum nn_cleanup_opt cleanopt)
 {
     struct nn_cinproc *cinproc;
 
     cinproc = nn_cont (self, struct nn_cinproc, item.epbase);
 
-    nn_sinproc_term (&cinproc->sinproc);
-    nn_fsm_term (&cinproc->fsm);
+    nn_sinproc_term (&cinproc->sinproc, cleanopt);
+    nn_fsm_term (&cinproc->fsm, cleanopt);
     nn_ins_item_term (&cinproc->item);
 
     nn_free (cinproc);

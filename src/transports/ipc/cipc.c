@@ -79,7 +79,8 @@ struct nn_cipc {
 
 /*  nn_epbase virtual interface implementation. */
 static void nn_cipc_stop (struct nn_epbase *self);
-static void nn_cipc_destroy (struct nn_epbase *self);
+static void nn_cipc_destroy (struct nn_epbase *self,
+    enum nn_cleanup_opt cleanopt);
 const struct nn_epbase_vfptr nn_cipc_epbase_vfptr = {
     nn_cipc_stop,
     nn_cipc_destroy
@@ -141,16 +142,17 @@ static void nn_cipc_stop (struct nn_epbase *self)
     nn_fsm_stop (&cipc->fsm);
 }
 
-static void nn_cipc_destroy (struct nn_epbase *self)
+static void nn_cipc_destroy (struct nn_epbase *self,
+    enum nn_cleanup_opt cleanopt)
 {
     struct nn_cipc *cipc;
 
     cipc = nn_cont (self, struct nn_cipc, epbase);
 
-    nn_sipc_term (&cipc->sipc);
-    nn_backoff_term (&cipc->retry);
-    nn_usock_term (&cipc->usock);
-    nn_fsm_term (&cipc->fsm);
+    nn_sipc_term (&cipc->sipc, cleanopt);
+    nn_backoff_term (&cipc->retry, cleanopt);
+    nn_usock_term (&cipc->usock, cleanopt);
+    nn_fsm_term (&cipc->fsm, cleanopt);
     nn_epbase_term (&cipc->epbase);
 
     nn_free (cipc);

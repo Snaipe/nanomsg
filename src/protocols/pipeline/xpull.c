@@ -47,10 +47,11 @@ struct nn_xpull {
 /*  Private functions. */
 static void nn_xpull_init (struct nn_xpull *self,
     const struct nn_sockbase_vfptr *vfptr, void *hint);
-static void nn_xpull_term (struct nn_xpull *self);
+static void nn_xpull_term (struct nn_xpull *self, enum nn_cleanup_opt cleanopt);
 
 /*  Implementation of nn_sockbase's virtual functions. */
-static void nn_xpull_destroy (struct nn_sockbase *self);
+static void nn_xpull_destroy (struct nn_sockbase *self,
+    enum nn_cleanup_opt cleanopt);
 static int nn_xpull_add (struct nn_sockbase *self, struct nn_pipe *pipe);
 static void nn_xpull_rm (struct nn_sockbase *self, struct nn_pipe *pipe);
 static void nn_xpull_in (struct nn_sockbase *self, struct nn_pipe *pipe);
@@ -82,19 +83,20 @@ static void nn_xpull_init (struct nn_xpull *self,
     nn_fq_init (&self->fq);
 }
 
-static void nn_xpull_term (struct nn_xpull *self)
+static void nn_xpull_term (struct nn_xpull *self, enum nn_cleanup_opt cleanopt)
 {
     nn_fq_term (&self->fq);
     nn_sockbase_term (&self->sockbase);
 }
 
-void nn_xpull_destroy (struct nn_sockbase *self)
+void nn_xpull_destroy (struct nn_sockbase *self,
+    enum nn_cleanup_opt cleanopt)
 {
     struct nn_xpull *xpull;
 
     xpull = nn_cont (self, struct nn_xpull, sockbase);
 
-    nn_xpull_term (xpull);
+    nn_xpull_term (xpull, cleanopt);
     nn_free (xpull);
 }
 

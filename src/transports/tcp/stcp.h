@@ -31,6 +31,7 @@
 #include "../utils/streamhdr.h"
 
 #include "../../utils/msg.h"
+#include "../../utils/cleanup.h"
 
 /*  This state machine handles TCP connection from the point where it is
     established to the point when it is broken. */
@@ -80,7 +81,7 @@ struct nn_stcp {
 
 void nn_stcp_init (struct nn_stcp *self, int src,
     struct nn_epbase *epbase, struct nn_fsm *owner);
-void nn_stcp_term (struct nn_stcp *self);
+void nn_stcp_term (struct nn_stcp *self, enum nn_cleanup_opt cleanopt);
 
 int nn_stcp_isidle (struct nn_stcp *self);
 void nn_stcp_start (struct nn_stcp *self, struct nn_usock *usock);

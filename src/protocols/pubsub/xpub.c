@@ -52,10 +52,11 @@ struct nn_xpub {
 /*  Private functions. */
 static void nn_xpub_init (struct nn_xpub *self,
     const struct nn_sockbase_vfptr *vfptr, void *hint);
-static void nn_xpub_term (struct nn_xpub *self);
+static void nn_xpub_term (struct nn_xpub *self, enum nn_cleanup_opt cleanopt);
 
 /*  Implementation of nn_sockbase's virtual functions. */
-static void nn_xpub_destroy (struct nn_sockbase *self);
+static void nn_xpub_destroy (struct nn_sockbase *self,
+    enum nn_cleanup_opt cleanopt);
 static int nn_xpub_add (struct nn_sockbase *self, struct nn_pipe *pipe);
 static void nn_xpub_rm (struct nn_sockbase *self, struct nn_pipe *pipe);
 static void nn_xpub_in (struct nn_sockbase *self, struct nn_pipe *pipe);
@@ -87,19 +88,20 @@ static void nn_xpub_init (struct nn_xpub *self,
     nn_dist_init (&self->outpipes);
 }
 
-static void nn_xpub_term (struct nn_xpub *self)
+static void nn_xpub_term (struct nn_xpub *self, enum nn_cleanup_opt cleanopt)
 {
     nn_dist_term (&self->outpipes);
     nn_sockbase_term (&self->sockbase);
 }
 
-void nn_xpub_destroy (struct nn_sockbase *self)
+void nn_xpub_destroy (struct nn_sockbase *self,
+    enum nn_cleanup_opt cleanopt)
 {
     struct nn_xpub *xpub;
 
     xpub = nn_cont (self, struct nn_xpub, sockbase);
 
-    nn_xpub_term (xpub);
+    nn_xpub_term (xpub, cleanopt);
     nn_free (xpub);
 }
 

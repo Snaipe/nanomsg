@@ -30,6 +30,7 @@
 #include "../utils/cont.h"
 #include "../utils/fast.h"
 #include "../utils/attr.h"
+#include "../utils/cleanup.h"
 
 #include <string.h>
 
@@ -74,20 +75,21 @@ int nn_ep_init (struct nn_ep *self, int src, struct nn_sock *sock, int eid,
     /*  Endpoint creation failed. */
     if (rc < 0) {
         nn_list_item_term (&self->item);
-        nn_fsm_term (&self->fsm);
+        nn_fsm_term (&self->fsm, NN_CLEAN_DEFAULT);
         return rc;
     }
 
     return 0;
 }
 
-void nn_ep_term (struct nn_ep *self)
+void nn_ep_term (struct nn_ep *self, enum nn_cleanup_opt cleanopt)
 {
-    nn_assert_state (self, NN_EP_STATE_IDLE);
+    if (nn_fast (!(cleanopt & NN_CLEAN_NO_CHECK)))
+        nn_assert_state (self, NN_EP_STATE_IDLE);
 
-    self->epbase->vfptr->destroy (self->epbase);
+    self->epbase->vfptr->destroy (self->epbase, cleanopt);
     nn_list_item_term (&self->item);
-    nn_fsm_term (&self->fsm);
+    nn_fsm_term (&self->fsm, cleanopt);
 }
 
 void nn_ep_start (struct nn_ep *self)

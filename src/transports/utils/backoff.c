@@ -31,9 +31,9 @@ void nn_backoff_init (struct nn_backoff *self, int src, int minivl, int maxivl,
     self->n = 1;
 }
 
-void nn_backoff_term (struct nn_backoff *self)
+void nn_backoff_term (struct nn_backoff *self, enum nn_cleanup_opt cleanopt)
 {
-    nn_timer_term (&self->timer);
+    nn_timer_term (&self->timer, cleanopt);
 }
 
 int nn_backoff_isidle (struct nn_backoff *self)

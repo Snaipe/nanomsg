@@ -57,7 +57,7 @@ struct nn_xrep {
 
 void nn_xrep_init (struct nn_xrep *self, const struct nn_sockbase_vfptr *vfptr,
     void *hint);
-void nn_xrep_term (struct nn_xrep *self);
+void nn_xrep_term (struct nn_xrep *self, enum nn_cleanup_opt cleanopt);
 
 int nn_xrep_add (struct nn_sockbase *self, struct nn_pipe *pipe);
 void nn_xrep_rm (struct nn_sockbase *self, struct nn_pipe *pipe);

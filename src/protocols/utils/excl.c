@@ -33,8 +33,11 @@ void nn_excl_init (struct nn_excl *self)
     self->outpipe = NULL;
 }
 
-void nn_excl_term (struct nn_excl *self)
+void nn_excl_term (struct nn_excl *self, enum nn_cleanup_opt cleanopt)
 {
+    if (nn_slow (cleanopt & NN_CLEAN_NO_CHECK))
+        return;
+
     nn_assert (!self->pipe);
     nn_assert (!self->inpipe);
     nn_assert (!self->outpipe);

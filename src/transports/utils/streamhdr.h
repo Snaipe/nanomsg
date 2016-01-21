@@ -65,7 +65,7 @@ struct nn_streamhdr {
 
 void nn_streamhdr_init (struct nn_streamhdr *self, int src,
     struct nn_fsm *owner);
-void nn_streamhdr_term (struct nn_streamhdr *self);
+void nn_streamhdr_term (struct nn_streamhdr *self, enum nn_cleanup_opt copt);
 
 int nn_streamhdr_isidle (struct nn_streamhdr *self);
 void nn_streamhdr_start (struct nn_streamhdr *self, struct nn_usock *usock,

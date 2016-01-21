@@ -56,7 +56,8 @@ struct nn_xrespondent {
 
 void nn_xrespondent_init (struct nn_xrespondent *self,
     const struct nn_sockbase_vfptr *vfptr, void *hint);
-void nn_xrespondent_term (struct nn_xrespondent *self);
+void nn_xrespondent_term (struct nn_xrespondent *self,
+    enum nn_cleanup_opt cleanopt);
 
 int nn_xrespondent_add (struct nn_sockbase *self, struct nn_pipe *pipe);
 void nn_xrespondent_rm (struct nn_sockbase *self, struct nn_pipe *pipe);

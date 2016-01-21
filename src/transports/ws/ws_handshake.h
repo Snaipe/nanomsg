@@ -32,6 +32,7 @@
 #include "../../aio/timer.h"
 
 #include "../../utils/int.h"
+#include "../../utils/cleanup.h"
 
 /*  This state machine exchanges a handshake with a WebSocket client. */
 
@@ -167,7 +168,8 @@ struct nn_ws_sp_map {
 
 void nn_ws_handshake_init (struct nn_ws_handshake *self, int src,
     struct nn_fsm *owner);
-void nn_ws_handshake_term (struct nn_ws_handshake *self);
+void nn_ws_handshake_term (struct nn_ws_handshake *self,
+    enum nn_cleanup_opt cleanopt);
 
 int nn_ws_handshake_isidle (struct nn_ws_handshake *self);
 void nn_ws_handshake_start (struct nn_ws_handshake *self,

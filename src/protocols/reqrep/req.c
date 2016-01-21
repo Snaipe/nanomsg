@@ -106,14 +106,14 @@ void nn_req_init (struct nn_req *self,
     nn_fsm_start (&self->fsm);
 }
 
-void nn_req_term (struct nn_req *self)
+void nn_req_term (struct nn_req *self, enum nn_cleanup_opt cleanopt)
 {
-    nn_timer_term (&self->task.timer);
+    nn_timer_term (&self->task.timer, cleanopt);
     nn_task_term (&self->task);
     nn_msg_term (&self->task.reply);
     nn_msg_term (&self->task.request);
-    nn_fsm_term (&self->fsm);
-    nn_xreq_term (&self->xreq);
+    nn_fsm_term (&self->fsm, cleanopt);
+    nn_xreq_term (&self->xreq, cleanopt);
 }
 
 void nn_req_stop (struct nn_sockbase *self)
@@ -125,13 +125,13 @@ void nn_req_stop (struct nn_sockbase *self)
     nn_fsm_stop (&req->fsm);
 }
 
-void nn_req_destroy (struct nn_sockbase *self)
+void nn_req_destroy (struct nn_sockbase *self, enum nn_cleanup_opt cleanopt)
 {
     struct nn_req *req;
 
     req = nn_cont (self, struct nn_req, xreq.sockbase);
 
-    nn_req_term (req);
+    nn_req_term (req, cleanopt);
     nn_free (req);
 }
 

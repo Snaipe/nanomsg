@@ -52,7 +52,7 @@
 #endif
 
 void nn_usock_init (struct nn_usock *self, int src, struct nn_fsm *owner);
-void nn_usock_term (struct nn_usock *self);
+void nn_usock_term (struct nn_usock *self, enum nn_cleanup_opt cleanopt);
 
 int nn_usock_isidle (struct nn_usock *self);
 int nn_usock_start (struct nn_usock *self,

@@ -62,16 +62,17 @@ void nn_atcp_init (struct nn_atcp *self, int src,
     nn_list_item_init (&self->item);
 }
 
-void nn_atcp_term (struct nn_atcp *self)
+void nn_atcp_term (struct nn_atcp *self, enum nn_cleanup_opt cleanopt)
 {
-    nn_assert_state (self, NN_ATCP_STATE_IDLE);
+    if (nn_fast (!(cleanopt & NN_CLEAN_NO_CHECK)))
+        nn_assert_state (self, NN_ATCP_STATE_IDLE);
 
     nn_list_item_term (&self->item);
     nn_fsm_event_term (&self->done);
     nn_fsm_event_term (&self->accepted);
-    nn_stcp_term (&self->stcp);
-    nn_usock_term (&self->usock);
-    nn_fsm_term (&self->fsm);
+    nn_stcp_term (&self->stcp, cleanopt);
+    nn_usock_term (&self->usock, cleanopt);
+    nn_fsm_term (&self->fsm, cleanopt);
 }
 
 int nn_atcp_isidle (struct nn_atcp *self)

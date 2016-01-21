@@ -84,7 +84,8 @@ struct nn_bipc {
 
 /*  nn_epbase virtual interface implementation. */
 static void nn_bipc_stop (struct nn_epbase *self);
-static void nn_bipc_destroy (struct nn_epbase *self);
+static void nn_bipc_destroy (struct nn_epbase *self,
+    enum nn_cleanup_opt cleanopt);
 const struct nn_epbase_vfptr nn_bipc_epbase_vfptr = {
     nn_bipc_stop,
     nn_bipc_destroy
@@ -148,19 +149,38 @@ static void nn_bipc_stop (struct nn_epbase *self)
     nn_fsm_stop (&bipc->fsm);
 }
 
-static void nn_bipc_destroy (struct nn_epbase *self)
+static void nn_bipc_release_aipc (struct nn_list_item *it,
+    enum nn_cleanup_opt cleanopt)
+{
+    struct nn_aipc *aipc = nn_cont (it, struct nn_aipc, item);
+    nn_aipc_term (aipc, cleanopt);
+    nn_free (aipc);
+}
+
+static void nn_bipc_destroy (struct nn_epbase *self,
+    enum nn_cleanup_opt cleanopt)
 {
     struct nn_bipc *bipc;
 
     bipc = nn_cont (self, struct nn_bipc, epbase);
 
-    nn_assert_state (bipc, NN_BIPC_STATE_IDLE);
+    if (nn_fast (!(cleanopt & NN_CLEAN_NO_CHECK)))
+        nn_assert_state (bipc, NN_BIPC_STATE_IDLE);
+    if (nn_slow (cleanopt & NN_CLEAN_EMPTY)) {
+        nn_list_clear (&bipc->aipcs, cleanopt, nn_bipc_release_aipc);
+
+        if (bipc->aipc != NULL) {
+            nn_aipc_term (bipc->aipc, cleanopt);
+            nn_free (bipc->aipc);
+            bipc->aipc = NULL;
+        }
+    }
     nn_list_term (&bipc->aipcs);
     nn_assert (bipc->aipc == NULL);
-    nn_usock_term (&bipc->usock);
-    nn_backoff_term (&bipc->retry);
+    nn_usock_term (&bipc->usock, cleanopt);
+    nn_backoff_term (&bipc->retry, cleanopt);
     nn_epbase_term (&bipc->epbase);
-    nn_fsm_term (&bipc->fsm);
+    nn_fsm_term (&bipc->fsm, cleanopt);
 
     nn_free (bipc);
 }
@@ -187,7 +207,7 @@ static void nn_bipc_shutdown (struct nn_fsm *self, int src, int type,
     if (nn_slow (bipc->state == NN_BIPC_STATE_STOPPING_AIPC)) {
         if (!nn_aipc_isidle (bipc->aipc))
             return;
-        nn_aipc_term (bipc->aipc);
+        nn_aipc_term (bipc->aipc, NN_CLEAN_DEFAULT);
         nn_free (bipc->aipc);
         bipc->aipc = NULL;
         nn_usock_stop (&bipc->usock);
@@ -210,7 +230,7 @@ static void nn_bipc_shutdown (struct nn_fsm *self, int src, int type,
         nn_assert (src == NN_BIPC_SRC_AIPC && type == NN_AIPC_STOPPED);
         aipc = (struct nn_aipc *) srcptr;
         nn_list_erase (&bipc->aipcs, &aipc->item);
-        nn_aipc_term (aipc);
+        nn_aipc_term (aipc, NN_CLEAN_DEFAULT);
         nn_free (aipc);
 
         /*  If there are no more aipc state machines, we can stop the whole
@@ -293,7 +313,7 @@ static void nn_bipc_handler (struct nn_fsm *self, int src, int type,
             return;
         case NN_AIPC_STOPPED:
             nn_list_erase (&bipc->aipcs, &aipc->item);
-            nn_aipc_term (aipc);
+            nn_aipc_term (aipc, NN_CLEAN_DEFAULT);
             nn_free (aipc);
             return;
         default:

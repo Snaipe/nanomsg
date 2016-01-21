@@ -48,10 +48,12 @@ struct nn_respondent {
 /*  Private functions. */
 static void nn_respondent_init (struct nn_respondent *self,
     const struct nn_sockbase_vfptr *vfptr, void *hint);
-static void nn_respondent_term (struct nn_respondent *self);
+static void nn_respondent_term (struct nn_respondent *self,
+    enum nn_cleanup_opt cleanopt);
 
 /*  Implementation of nn_sockbase's virtual functions. */
-static void nn_respondent_destroy (struct nn_sockbase *self);
+static void nn_respondent_destroy (struct nn_sockbase *self,
+    enum nn_cleanup_opt cleanopt);
 static int nn_respondent_events (struct nn_sockbase *self);
 static int nn_respondent_send (struct nn_sockbase *self, struct nn_msg *msg);
 static int nn_respondent_recv (struct nn_sockbase *self, struct nn_msg *msg);
@@ -76,20 +78,22 @@ static void nn_respondent_init (struct nn_respondent *self,
     self->flags = 0;
 }
 
-static void nn_respondent_term (struct nn_respondent *self)
+static void nn_respondent_term (struct nn_respondent *self,
+    enum nn_cleanup_opt cleanopt)
 {
     if (self->flags & NN_RESPONDENT_INPROGRESS)
         nn_chunkref_term (&self->backtrace);
-    nn_xrespondent_term (&self->xrespondent);
+    nn_xrespondent_term (&self->xrespondent, cleanopt);
 }
 
-void nn_respondent_destroy (struct nn_sockbase *self)
+void nn_respondent_destroy (struct nn_sockbase *self,
+    enum nn_cleanup_opt cleanopt)
 {
     struct nn_respondent *respondent;
 
     respondent = nn_cont (self, struct nn_respondent, xrespondent.sockbase);
 
-    nn_respondent_term (respondent);
+    nn_respondent_term (respondent, cleanopt);
     nn_free (respondent);
 }
 

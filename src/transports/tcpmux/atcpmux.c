@@ -58,16 +58,17 @@ void nn_atcpmux_init (struct nn_atcpmux *self, int src,
     nn_list_item_init (&self->item);
 }
 
-void nn_atcpmux_term (struct nn_atcpmux *self)
+void nn_atcpmux_term (struct nn_atcpmux *self, enum nn_cleanup_opt cleanopt)
 {
-    nn_assert_state (self, NN_ATCPMUX_STATE_IDLE);
+    if (nn_fast (!(cleanopt & NN_CLEAN_NO_CHECK)))
+        nn_assert_state (self, NN_ATCPMUX_STATE_IDLE);
 
     nn_list_item_term (&self->item);
     nn_fsm_event_term (&self->done);
     nn_fsm_event_term (&self->accepted);
-    nn_stcpmux_term (&self->stcpmux);
-    nn_usock_term (&self->usock);
-    nn_fsm_term (&self->fsm);
+    nn_stcpmux_term (&self->stcpmux, cleanopt);
+    nn_usock_term (&self->usock, cleanopt);
+    nn_fsm_term (&self->fsm, cleanopt);
 }
 
 int nn_atcpmux_isidle (struct nn_atcpmux *self)

@@ -29,6 +29,7 @@
     you can poll on to wait for the event. */
 
 #include "fd.h"
+#include "cleanup.h"
 
 #if defined NN_HAVE_WINDOWS
 #include "efd_win.h"
@@ -46,7 +47,7 @@
 int nn_efd_init (struct nn_efd *self);
 
 /*  Uninitialise the efd object. */
-void nn_efd_term (struct nn_efd *self);
+void nn_efd_term (struct nn_efd *self, enum nn_cleanup_opt cleanopt);
 
 /*  Get the OS file descriptor that is readable when the efd object
     is signaled. */

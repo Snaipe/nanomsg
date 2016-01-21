@@ -31,6 +31,7 @@
 #include "utils/list.h"
 #include "utils/msg.h"
 #include "utils/int.h"
+#include "utils/cleanup.h"
 
 #include <stddef.h>
 
@@ -75,7 +76,7 @@ struct nn_epbase_vfptr {
     void (*stop) (struct nn_epbase *self);
 
     /*  Deallocate the endpoint object. */
-    void (*destroy) (struct nn_epbase *self);
+    void (*destroy) (struct nn_epbase *self, enum nn_cleanup_opt cleanopt);
 };
 
 struct nn_epbase {
@@ -193,7 +194,7 @@ void nn_pipebase_init (struct nn_pipebase *self,
     const struct nn_pipebase_vfptr *vfptr, struct nn_epbase *epbase);
 
 /*  Terminate the pipe. */
-void nn_pipebase_term (struct nn_pipebase *self);
+void nn_pipebase_term (struct nn_pipebase *self, enum nn_cleanup_opt cleanopt);
 
 /*  Call this function once the connection is established. */
 int nn_pipebase_start (struct nn_pipebase *self);

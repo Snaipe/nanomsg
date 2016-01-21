@@ -65,16 +65,17 @@ void nn_aws_init (struct nn_aws *self, int src,
     nn_list_item_init (&self->item);
 }
 
-void nn_aws_term (struct nn_aws *self)
+void nn_aws_term (struct nn_aws *self, enum nn_cleanup_opt cleanopt)
 {
-    nn_assert_state (self, NN_AWS_STATE_IDLE);
+    if (nn_fast (!(cleanopt & NN_CLEAN_NO_CHECK)))
+        nn_assert_state (self, NN_AWS_STATE_IDLE);
 
     nn_list_item_term (&self->item);
     nn_fsm_event_term (&self->done);
     nn_fsm_event_term (&self->accepted);
-    nn_sws_term (&self->sws);
-    nn_usock_term (&self->usock);
-    nn_fsm_term (&self->fsm);
+    nn_sws_term (&self->sws, cleanopt);
+    nn_usock_term (&self->usock, cleanopt);
+    nn_fsm_term (&self->fsm, cleanopt);
 }
 
 int nn_aws_isidle (struct nn_aws *self)

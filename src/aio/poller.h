@@ -29,6 +29,8 @@
 #define NN_POLLER_OUT 2
 #define NN_POLLER_ERR 3
 
+#include "../utils/cleanup.h"
+
 #if defined NN_USE_POLL
 #include "poller_poll.h"
 #elif defined NN_USE_EPOLL
@@ -38,7 +40,7 @@
 #endif
 
 int nn_poller_init (struct nn_poller *self);
-void nn_poller_term (struct nn_poller *self);
+void nn_poller_term (struct nn_poller *self, enum nn_cleanup_opt cleanopt);
 void nn_poller_add (struct nn_poller *self, int fd,
     struct nn_poller_hndl *hndl);
 void nn_poller_rm (struct nn_poller *self, struct nn_poller_hndl *hndl);

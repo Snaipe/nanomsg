@@ -102,9 +102,10 @@ void nn_fsm_init (struct nn_fsm *self, nn_fsm_fn fn,
     nn_fsm_event_init (&self->stopped);
 }
 
-void nn_fsm_term (struct nn_fsm *self)
+void nn_fsm_term (struct nn_fsm *self, enum nn_cleanup_opt cleanopt)
 {
-    nn_assert (nn_fsm_isidle (self));
+    if (nn_fast (!(cleanopt & NN_CLEAN_NO_CHECK)))
+        nn_assert (nn_fsm_isidle (self));
     nn_fsm_event_term (&self->stopped);
 }
 

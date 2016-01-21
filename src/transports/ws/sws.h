@@ -34,6 +34,7 @@
 
 #include "../../utils/msg.h"
 #include "../../utils/list.h"
+#include "../../utils/cleanup.h"
 
 /*  This state machine handles WebSocket connection from the point where it is
     established to the point when it is broken. */
@@ -194,7 +195,7 @@ void nn_msg_array_term (struct nn_list *msg_array);
 
 void nn_sws_init (struct nn_sws *self, int src,
     struct nn_epbase *epbase, struct nn_fsm *owner);
-void nn_sws_term (struct nn_sws *self);
+void nn_sws_term (struct nn_sws *self, enum nn_cleanup_opt cleanopt);
 
 int nn_sws_isidle (struct nn_sws *self);
 void nn_sws_start (struct nn_sws *self, struct nn_usock *usock, int mode,

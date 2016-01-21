@@ -48,7 +48,7 @@ struct nn_ep {
 
 int nn_ep_init (struct nn_ep *self, int src, struct nn_sock *sock, int eid,
     struct nn_transport *transport, int bind, const char *addr);
-void nn_ep_term (struct nn_ep *self);
+void nn_ep_term (struct nn_ep *self, enum nn_cleanup_opt cleanopt);
 
 void nn_ep_start (struct nn_ep *self);
 void nn_ep_stop (struct nn_ep *self);

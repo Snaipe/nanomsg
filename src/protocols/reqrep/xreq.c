@@ -38,7 +38,8 @@ struct nn_xreq_data {
 };
 
 /*  Private functions. */
-static void nn_xreq_destroy (struct nn_sockbase *self);
+static void nn_xreq_destroy (struct nn_sockbase *self,
+    enum nn_cleanup_opt cleanopt);
 
 static const struct nn_sockbase_vfptr nn_xreq_sockbase_vfptr = {
     NULL,
@@ -62,20 +63,21 @@ void nn_xreq_init (struct nn_xreq *self, const struct nn_sockbase_vfptr *vfptr,
     nn_fq_init (&self->fq);
 }
 
-void nn_xreq_term (struct nn_xreq *self)
+void nn_xreq_term (struct nn_xreq *self, enum nn_cleanup_opt cleanopt)
 {
     nn_fq_term (&self->fq);
     nn_lb_term (&self->lb);
     nn_sockbase_term (&self->sockbase);
 }
 
-static void nn_xreq_destroy (struct nn_sockbase *self)
+static void nn_xreq_destroy (struct nn_sockbase *self,
+    enum nn_cleanup_opt cleanopt)
 {
     struct nn_xreq *xreq;
 
     xreq = nn_cont (self, struct nn_xreq, sockbase);
 
-    nn_xreq_term (xreq);
+    nn_xreq_term (xreq, cleanopt);
     nn_free (xreq);
 }
 

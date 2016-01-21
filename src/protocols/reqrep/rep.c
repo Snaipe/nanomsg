@@ -60,20 +60,20 @@ void nn_rep_init (struct nn_rep *self,
     self->flags = 0;
 }
 
-void nn_rep_term (struct nn_rep *self)
+void nn_rep_term (struct nn_rep *self, enum nn_cleanup_opt cleanopt)
 {
     if (self->flags & NN_REP_INPROGRESS)
         nn_chunkref_term (&self->backtrace);
-    nn_xrep_term (&self->xrep);
+    nn_xrep_term (&self->xrep, cleanopt);
 }
 
-void nn_rep_destroy (struct nn_sockbase *self)
+void nn_rep_destroy (struct nn_sockbase *self, enum nn_cleanup_opt cleanopt)
 {
     struct nn_rep *rep;
 
     rep = nn_cont (self, struct nn_rep, xrep.sockbase);
 
-    nn_rep_term (rep);
+    nn_rep_term (rep, cleanopt);
     nn_free (rep);
 }
 

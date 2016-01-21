@@ -1543,7 +1543,7 @@ void nn_global_postfork_cleanup (void)
     if (self.socks && self.nsocks) {
         for (i = 0; i != NN_MAX_SOCKETS; ++i)
             if (self.socks [i]) {
-                nn_sock_unsafe_cleanup (self.socks [i], NN_CLEAN_EMPTY);
+                nn_sock_unsafe_cleanup (self.socks [i], NN_CLEAN_RESET_UNSAFE);
                 nn_free (self.socks [i]);
                 self.socks [i] = NULL;
                 self.nsocks--;

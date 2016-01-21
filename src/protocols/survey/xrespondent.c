@@ -36,7 +36,8 @@
 #include "../../utils/attr.h"
 
 /*  Private functions. */
-static void nn_xrespondent_destroy (struct nn_sockbase *self);
+static void nn_xrespondent_destroy (struct nn_sockbase *self,
+    enum nn_cleanup_opt cleanopt);
 
 /*  Implementation of nn_sockbase's virtual functions. */
 static const struct nn_sockbase_vfptr nn_xrespondent_sockbase_vfptr = {
@@ -64,20 +65,22 @@ void nn_xrespondent_init (struct nn_xrespondent *self,
     nn_fq_init (&self->inpipes);
 }
 
-void nn_xrespondent_term (struct nn_xrespondent *self)
+void nn_xrespondent_term (struct nn_xrespondent *self,
+    enum nn_cleanup_opt cleanopt)
 {
     nn_fq_term (&self->inpipes);
     nn_hash_term (&self->outpipes);
     nn_sockbase_term (&self->sockbase);
 }
 
-static void nn_xrespondent_destroy (struct nn_sockbase *self)
+static void nn_xrespondent_destroy (struct nn_sockbase *self,
+    enum nn_cleanup_opt cleanopt)
 {
     struct nn_xrespondent *xrespondent;
 
     xrespondent = nn_cont (self, struct nn_xrespondent, sockbase);
 
-    nn_xrespondent_term (xrespondent);
+    nn_xrespondent_term (xrespondent, cleanopt);
     nn_free (xrespondent);
 }
 

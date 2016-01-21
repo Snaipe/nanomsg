@@ -24,6 +24,7 @@
 #define NN_BACKOFF_INCLUDED
 
 #include "../../aio/timer.h"
+#include "../../utils/cleanup.h"
 
 /*  Timer with exponential backoff. Actual wating time is (2^n-1)*minivl,
     meaning that first wait is 0 ms long, second one is minivl ms long etc. */
@@ -40,7 +41,7 @@ struct nn_backoff {
 
 void nn_backoff_init (struct nn_backoff *self, int src, int minivl, int maxivl,
     struct nn_fsm *owner);
-void nn_backoff_term (struct nn_backoff *self);
+void nn_backoff_term (struct nn_backoff *self, enum nn_cleanup_opt opt);
 
 int nn_backoff_isidle (struct nn_backoff *self);
 void nn_backoff_start (struct nn_backoff *self);

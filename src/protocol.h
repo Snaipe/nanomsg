@@ -26,6 +26,7 @@
 #include "utils/msg.h"
 #include "utils/list.h"
 #include "utils/int.h"
+#include "utils/cleanup.h"
 
 #include <stddef.h>
 
@@ -92,7 +93,7 @@ struct nn_sockbase_vfptr {
     void (*stop) (struct nn_sockbase *self);
 
     /*  Deallocate the socket. */
-    void (*destroy) (struct nn_sockbase *self);
+    void (*destroy) (struct nn_sockbase *self, enum nn_cleanup_opt cleanopt);
 
     /*  Management of pipes. 'add' registers a new pipe. The pipe cannot be used
         to send to or to be received from at the moment. 'rm' unregisters the

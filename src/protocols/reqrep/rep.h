@@ -39,10 +39,10 @@ struct nn_rep {
     Expose these methods to improve extensibility. */
 void nn_rep_init (struct nn_rep *self,
 const struct nn_sockbase_vfptr *vfptr, void *hint);
-void nn_rep_term (struct nn_rep *self);
+void nn_rep_term (struct nn_rep *self, enum nn_cleanup_opt cleanopt);
 
 /*  Implementation of nn_sockbase's virtual functions. */
-void nn_rep_destroy (struct nn_sockbase *self);
+void nn_rep_destroy (struct nn_sockbase *self, enum nn_cleanup_opt cleanopt);
 int nn_rep_events (struct nn_sockbase *self);
 int nn_rep_send (struct nn_sockbase *self, struct nn_msg *msg);
 int nn_rep_recv (struct nn_sockbase *self, struct nn_msg *msg);

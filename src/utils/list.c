@@ -127,14 +127,15 @@ int nn_list_item_isinlist (struct nn_list_item *self)
     return self->prev == NN_LIST_NOTINLIST ? 0 : 1;
 }
 
-void nn_list_clear (struct nn_list *self, void (*dtor)(struct nn_list_item *))
+void nn_list_clear (struct nn_list *self, enum nn_cleanup_opt cleanopt,
+    void (*dtor)(struct nn_list_item *, enum nn_cleanup_opt cleanopt))
 {
     struct nn_list_item *elt = nn_list_begin (self);
     while (elt != NULL) {
         struct nn_list_item *next = nn_list_erase(self, elt);
         nn_list_item_term(elt);
         if (dtor)
-            dtor(elt);
+            dtor(elt, cleanopt);
         elt = next;
     }
 }

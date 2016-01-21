@@ -48,7 +48,7 @@ struct nn_dns_result {
 };
 
 void nn_dns_init (struct nn_dns *self, int src, struct nn_fsm *owner);
-void nn_dns_term (struct nn_dns *self);
+void nn_dns_term (struct nn_dns *self, enum nn_cleanup_opt cleanopt);
 
 int nn_dns_isidle (struct nn_dns *self);
 void nn_dns_start (struct nn_dns *self, const char *addr, size_t addrlen,

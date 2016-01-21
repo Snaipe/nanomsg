@@ -86,7 +86,8 @@ struct nn_surveyor {
 /*  Private functions. */
 static void nn_surveyor_init (struct nn_surveyor *self,
     const struct nn_sockbase_vfptr *vfptr, void *hint);
-static void nn_surveyor_term (struct nn_surveyor *self);
+static void nn_surveyor_term (struct nn_surveyor *self,
+    enum nn_cleanup_opt cleanopt);
 static void nn_surveyor_handler (struct nn_fsm *self, int src, int type,
     void *srcptr);
 static void nn_surveyor_shutdown (struct nn_fsm *self, int src, int type,
@@ -96,7 +97,8 @@ static void nn_surveyor_resend (struct nn_surveyor *self);
 
 /*  Implementation of nn_sockbase's virtual functions. */
 static void nn_surveyor_stop (struct nn_sockbase *self);
-static void nn_surveyor_destroy (struct nn_sockbase *self);
+static void nn_surveyor_destroy (struct nn_sockbase *self,
+    enum nn_cleanup_opt cleanopt);
 static int nn_surveyor_events (struct nn_sockbase *self);
 static int nn_surveyor_send (struct nn_sockbase *self, struct nn_msg *msg);
 static int nn_surveyor_recv (struct nn_sockbase *self, struct nn_msg *msg);
@@ -139,12 +141,12 @@ static void nn_surveyor_init (struct nn_surveyor *self,
     nn_fsm_start (&self->fsm);
 }
 
-static void nn_surveyor_term (struct nn_surveyor *self)
+static void nn_surveyor_term (struct nn_surveyor *self, enum nn_cleanup_opt opt)
 {
     nn_msg_term (&self->tosend);
-    nn_timer_term (&self->timer);
-    nn_fsm_term (&self->fsm);
-    nn_xsurveyor_term (&self->xsurveyor);
+    nn_timer_term (&self->timer, opt);
+    nn_fsm_term (&self->fsm, opt);
+    nn_xsurveyor_term (&self->xsurveyor, opt);
 }
 
 void nn_surveyor_stop (struct nn_sockbase *self)
@@ -156,13 +158,14 @@ void nn_surveyor_stop (struct nn_sockbase *self)
     nn_fsm_stop (&surveyor->fsm);
 }
 
-void nn_surveyor_destroy (struct nn_sockbase *self)
+void nn_surveyor_destroy (struct nn_sockbase *self,
+    enum nn_cleanup_opt cleanopt)
 {
     struct nn_surveyor *surveyor;
 
     surveyor = nn_cont (self, struct nn_surveyor, xsurveyor.sockbase);
 
-    nn_surveyor_term (surveyor);
+    nn_surveyor_term (surveyor, cleanopt);
     nn_free (surveyor);
 }
 

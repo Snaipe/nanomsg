@@ -66,16 +66,16 @@ int nn_efd_init (struct nn_efd *self)
     return 0;
 }
 
-void nn_efd_term (struct nn_efd *self)
+void nn_efd_term (struct nn_efd *self, enum nn_cleanup_opt cleanopt)
 {
     /*  Close the read side first. */
     int fd = self->r;
     self->r = -1;
-    nn_closefd (fd);
+    nn_closefd (fd, cleanopt);
 
     fd = self->w;
     self->w = -1;
-    nn_closefd (fd);
+    nn_closefd (fd, cleanopt);
 }
 
 void nn_efd_stop (struct nn_efd *self)

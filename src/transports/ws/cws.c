@@ -112,7 +112,8 @@ struct nn_cws {
 
 /*  nn_epbase virtual interface implementation. */
 static void nn_cws_stop (struct nn_epbase *self);
-static void nn_cws_destroy (struct nn_epbase *self);
+static void nn_cws_destroy (struct nn_epbase *self,
+    enum nn_cleanup_opt cleanopt);
 const struct nn_epbase_vfptr nn_cws_epbase_vfptr = {
     nn_cws_stop,
     nn_cws_destroy
@@ -280,7 +281,8 @@ static void nn_cws_stop (struct nn_epbase *self)
     nn_fsm_stop (&cws->fsm);
 }
 
-static void nn_cws_destroy (struct nn_epbase *self)
+static void nn_cws_destroy (struct nn_epbase *self,
+    enum nn_cleanup_opt cleanopt)
 {
     struct nn_cws *cws;
 
@@ -289,11 +291,11 @@ static void nn_cws_destroy (struct nn_epbase *self)
     nn_chunkref_term (&cws->resource);
     nn_chunkref_term (&cws->remote_host);
     nn_chunkref_term (&cws->nic);
-    nn_dns_term (&cws->dns);
-    nn_sws_term (&cws->sws);
-    nn_backoff_term (&cws->retry);
-    nn_usock_term (&cws->usock);
-    nn_fsm_term (&cws->fsm);
+    nn_dns_term (&cws->dns, cleanopt);
+    nn_sws_term (&cws->sws, cleanopt);
+    nn_backoff_term (&cws->retry, cleanopt);
+    nn_usock_term (&cws->usock, cleanopt);
+    nn_fsm_term (&cws->fsm, cleanopt);
     nn_epbase_term (&cws->epbase);
 
     nn_free (cws);

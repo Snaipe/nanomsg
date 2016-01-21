@@ -53,9 +53,9 @@ int nn_poller_init (struct nn_poller *self)
     return 0;
 }
 
-void nn_poller_term (struct nn_poller *self)
+void nn_poller_term (struct nn_poller *self, enum nn_cleanup_opt cleanopt)
 {
-    nn_closefd (self->ep);
+    nn_closefd (self->ep, cleanopt);
 }
 
 void nn_poller_add (struct nn_poller *self, int fd,

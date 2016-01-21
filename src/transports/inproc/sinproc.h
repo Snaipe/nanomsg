@@ -31,6 +31,7 @@
 
 #include "../../utils/msg.h"
 #include "../../utils/list.h"
+#include "../../utils/cleanup.h"
 
 #define NN_SINPROC_CONNECT 1
 #define NN_SINPROC_READY 2
@@ -83,7 +84,7 @@ struct nn_sinproc {
 
 void nn_sinproc_init (struct nn_sinproc *self, int src,
     struct nn_epbase *epbase, struct nn_fsm *owner);
-void nn_sinproc_term (struct nn_sinproc *self);
+void nn_sinproc_term (struct nn_sinproc *self, enum nn_cleanup_opt cleanopt);
 int nn_sinproc_isidle (struct nn_sinproc *self);
 
 /*  Connect and accept are two different ways to start the state machine. */

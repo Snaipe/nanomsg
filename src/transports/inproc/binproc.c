@@ -39,7 +39,8 @@
 
 /*  Implementation of nn_epbase interface. */
 static void nn_binproc_stop (struct nn_epbase *self);
-static void nn_binproc_destroy (struct nn_epbase *self);
+static void nn_binproc_destroy (struct nn_epbase *self,
+    enum nn_cleanup_opt cleanopt);
 static const struct nn_epbase_vfptr nn_binproc_vfptr = {
     nn_binproc_stop,
     nn_binproc_destroy
@@ -76,10 +77,8 @@ int nn_binproc_create (void *hint, struct nn_epbase **epbase)
     if (nn_slow (rc < 0)) {
         nn_list_term (&self->sinprocs);
 
-        /*  TODO: Now, this is ugly! We are getting the state machine into
-            the idle state manually. How should it be done correctly? */
-        self->fsm.state = 1;
-        nn_fsm_term (&self->fsm);
+        /*  The FSM won't be in a valid idle state, cleanup without checks */
+        nn_fsm_term (&self->fsm, NN_CLEAN_NO_CHECK);
 
         nn_ins_item_term (&self->item);
         nn_free (self);
@@ -99,14 +98,15 @@ static void nn_binproc_stop (struct nn_epbase *self)
     nn_fsm_stop (&binproc->fsm);
 }
 
-static void nn_binproc_destroy (struct nn_epbase *self)
+static void nn_binproc_destroy (struct nn_epbase *self,
+    enum nn_cleanup_opt cleanopt)
 {
     struct nn_binproc *binproc;
 
     binproc = nn_cont (self, struct nn_binproc, item.epbase);
 
     nn_list_term (&binproc->sinprocs);
-    nn_fsm_term (&binproc->fsm);
+    nn_fsm_term (&binproc->fsm, cleanopt);
     nn_ins_item_term (&binproc->item);
 
     nn_free (binproc);
@@ -166,7 +166,7 @@ static void nn_binproc_shutdown (struct nn_fsm *self, int src, int type,
         nn_assert (src == NN_BINPROC_SRC_SINPROC && type == NN_SINPROC_STOPPED);
         sinproc = (struct nn_sinproc*) srcptr;
         nn_list_erase (&binproc->sinprocs, &sinproc->item);
-        nn_sinproc_term (sinproc);
+        nn_sinproc_term (sinproc, NN_CLEAN_DEFAULT);
         nn_free (sinproc);
 finish:
         if (!nn_list_empty (&binproc->sinprocs))

@@ -101,7 +101,8 @@ struct nn_btcpmux {
 
 /*  nn_epbase virtual interface implementation. */
 static void nn_btcpmux_stop (struct nn_epbase *self);
-static void nn_btcpmux_destroy (struct nn_epbase *self);
+static void nn_btcpmux_destroy (struct nn_epbase *self,
+    enum nn_cleanup_opt cleanopt);
 const struct nn_epbase_vfptr nn_btcpmux_epbase_vfptr = {
     nn_btcpmux_stop,
     nn_btcpmux_destroy
@@ -196,18 +197,20 @@ static void nn_btcpmux_stop (struct nn_epbase *self)
     nn_fsm_stop (&btcpmux->fsm);
 }
 
-static void nn_btcpmux_destroy (struct nn_epbase *self)
+static void nn_btcpmux_destroy (struct nn_epbase *self,
+    enum nn_cleanup_opt cleanopt)
 {
     struct nn_btcpmux *btcpmux;
 
     btcpmux = nn_cont (self, struct nn_btcpmux, epbase);
 
-    nn_assert_state (btcpmux, NN_BTCPMUX_STATE_IDLE);
+    if (nn_fast (!(cleanopt & NN_CLEAN_NO_CHECK)))
+        nn_assert_state (btcpmux, NN_BTCPMUX_STATE_IDLE);
     nn_list_term (&btcpmux->atcpmuxes);
-    nn_usock_term (&btcpmux->usock);
-    nn_backoff_term (&btcpmux->retry);
+    nn_usock_term (&btcpmux->usock, cleanopt);
+    nn_backoff_term (&btcpmux->retry, cleanopt);
     nn_epbase_term (&btcpmux->epbase);
-    nn_fsm_term (&btcpmux->fsm);
+    nn_fsm_term (&btcpmux->fsm, cleanopt);
 
     nn_free (btcpmux);
 }
@@ -242,7 +245,7 @@ static void nn_btcpmux_shutdown (struct nn_fsm *self, int src, int type,
         nn_assert (src == NN_BTCPMUX_SRC_ATCPMUX && type == NN_ATCPMUX_STOPPED);
         atcpmux = (struct nn_atcpmux *) srcptr;
         nn_list_erase (&btcpmux->atcpmuxes, &atcpmux->item);
-        nn_atcpmux_term (atcpmux);
+        nn_atcpmux_term (atcpmux, NN_CLEAN_DEFAULT);
         nn_free (atcpmux);
 
         /*  If there are no more atcpmux state machines, we can stop the whole
@@ -387,7 +390,7 @@ static void nn_btcpmux_handler (struct nn_fsm *self, int src, int type,
             return;
         case NN_ATCPMUX_STOPPED:
             nn_list_erase (&btcpmux->atcpmuxes, &atcpmux->item);
-            nn_atcpmux_term (atcpmux);
+            nn_atcpmux_term (atcpmux, NN_CLEAN_DEFAULT);
             nn_free (atcpmux);
             return;
         default:

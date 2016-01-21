@@ -24,11 +24,23 @@
 #define NN_CLEANUP_INCLUDED
 
 enum nn_cleanup_opt {
-    /* Don't do anything more than terminating the resources */
+    /* Terminate the resources and check the state */
     NN_CLEAN_DEFAULT = 0,
 
     /* Manually empty and release the contents of any internal collection */
     NN_CLEAN_EMPTY = 1,
+
+    /* Don't check for a valid state */
+    NN_CLEAN_NO_CHECK = 2,
+
+    /* Don't cleanup threads or tasks */
+    NN_CLEAN_NO_THREADS = 4,
+
+
+    /* Special masks */
+    NN_CLEAN_RESET_UNSAFE = NN_CLEAN_EMPTY
+                          | NN_CLEAN_NO_CHECK
+                          | NN_CLEAN_NO_THREADS,
 };
 
 #endif

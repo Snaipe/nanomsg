@@ -83,16 +83,17 @@ void nn_stcpmux_init (struct nn_stcpmux *self, int src,
     nn_fsm_event_init (&self->done);
 }
 
-void nn_stcpmux_term (struct nn_stcpmux *self)
+void nn_stcpmux_term (struct nn_stcpmux *self, enum nn_cleanup_opt cleanopt)
 {
-    nn_assert_state (self, NN_STCPMUX_STATE_IDLE);
+    if (nn_fast (!(cleanopt & NN_CLEAN_NO_CHECK)))
+        nn_assert_state (self, NN_STCPMUX_STATE_IDLE);
 
     nn_fsm_event_term (&self->done);
     nn_msg_term (&self->outmsg);
     nn_msg_term (&self->inmsg);
-    nn_pipebase_term (&self->pipebase);
-    nn_streamhdr_term (&self->streamhdr);
-    nn_fsm_term (&self->fsm);
+    nn_pipebase_term (&self->pipebase, cleanopt);
+    nn_streamhdr_term (&self->streamhdr, cleanopt);
+    nn_fsm_term (&self->fsm, cleanopt);
 }
 
 int nn_stcpmux_isidle (struct nn_stcpmux *self)

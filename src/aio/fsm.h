@@ -25,6 +25,7 @@
 #define NN_FSM_INCLUDED
 
 #include "../utils/queue.h"
+#include "../utils/cleanup.h"
 
 /*  Base class for state machines. */
 
@@ -80,7 +81,7 @@ void nn_fsm_init_root (struct nn_fsm *self, nn_fsm_fn fn,
 void nn_fsm_init (struct nn_fsm *self, nn_fsm_fn fn,
     nn_fsm_fn shutdown_fn,
     int src, void *srcptr, struct nn_fsm *owner);
-void nn_fsm_term (struct nn_fsm *self);
+void nn_fsm_term (struct nn_fsm *self, enum nn_cleanup_opt cleanopt);
 
 int nn_fsm_isidle (struct nn_fsm *self);
 void nn_fsm_start (struct nn_fsm *self);

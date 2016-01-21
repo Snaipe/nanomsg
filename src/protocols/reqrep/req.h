@@ -28,6 +28,7 @@
 
 #include "../../protocol.h"
 #include "../../aio/fsm.h"
+#include "../../utils/cleanup.h"
 
 struct nn_req {
 
@@ -54,7 +55,7 @@ extern struct nn_socktype *nn_req_socktype;
     Expose these methods to improve extensibility. */
 void nn_req_init (struct nn_req *self,
     const struct nn_sockbase_vfptr *vfptr, void *hint);
-void nn_req_term (struct nn_req *self);
+void nn_req_term (struct nn_req *self, enum nn_cleanup_opt cleanopt);
 int nn_req_inprogress (struct nn_req *self);
 void nn_req_handler (struct nn_fsm *self, int src, int type,
     void *srcptr);
@@ -64,7 +65,7 @@ void nn_req_action_send (struct nn_req *self, int allow_delay);
 
 /*  Implementation of nn_sockbase's virtual functions. */
 void nn_req_stop (struct nn_sockbase *self);
-void nn_req_destroy (struct nn_sockbase *self);
+void nn_req_destroy (struct nn_sockbase *self, enum nn_cleanup_opt cleanopt);
 void nn_req_in (struct nn_sockbase *self, struct nn_pipe *pipe);
 void nn_req_out (struct nn_sockbase *self, struct nn_pipe *pipe);
 int nn_req_events (struct nn_sockbase *self);

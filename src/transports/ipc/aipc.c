@@ -62,16 +62,17 @@ void nn_aipc_init (struct nn_aipc *self, int src,
     nn_list_item_init (&self->item);
 }
 
-void nn_aipc_term (struct nn_aipc *self)
+void nn_aipc_term (struct nn_aipc *self, enum nn_cleanup_opt cleanopt)
 {
-    nn_assert_state (self, NN_AIPC_STATE_IDLE);
+    if (nn_fast (!(cleanopt & NN_CLEAN_NO_CHECK)))
+        nn_assert_state (self, NN_AIPC_STATE_IDLE);
 
     nn_list_item_term (&self->item);
     nn_fsm_event_term (&self->done);
     nn_fsm_event_term (&self->accepted);
-    nn_sipc_term (&self->sipc);
-    nn_usock_term (&self->usock);
-    nn_fsm_term (&self->fsm);
+    nn_sipc_term (&self->sipc, cleanopt);
+    nn_usock_term (&self->usock, cleanopt);
+    nn_fsm_term (&self->fsm, cleanopt);
 }
 
 int nn_aipc_isidle (struct nn_aipc *self)

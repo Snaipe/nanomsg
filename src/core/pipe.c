@@ -63,13 +63,14 @@ void nn_pipebase_init (struct nn_pipebase *self,
     nn_fsm_event_init (&self->out);
 }
 
-void nn_pipebase_term (struct nn_pipebase *self)
+void nn_pipebase_term (struct nn_pipebase *self, enum nn_cleanup_opt cleanopt)
 {
-    nn_assert_state (self, NN_PIPEBASE_STATE_IDLE);
+    if (nn_fast (!(cleanopt & NN_CLEAN_NO_CHECK)))
+        nn_assert_state (self, NN_PIPEBASE_STATE_IDLE);
 
     nn_fsm_event_term (&self->out);
     nn_fsm_event_term (&self->in);
-    nn_fsm_term (&self->fsm);
+    nn_fsm_term (&self->fsm, cleanopt);
 }
 
 int nn_pipebase_start (struct nn_pipebase *self)

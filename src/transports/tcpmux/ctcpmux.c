@@ -101,7 +101,8 @@ struct nn_ctcpmux {
 
 /*  nn_epbase virtual interface implementation. */
 static void nn_ctcpmux_stop (struct nn_epbase *self);
-static void nn_ctcpmux_destroy (struct nn_epbase *self);
+static void nn_ctcpmux_destroy (struct nn_epbase *self,
+    enum nn_cleanup_opt cleanopt);
 const struct nn_epbase_vfptr nn_ctcpmux_epbase_vfptr = {
     nn_ctcpmux_stop,
     nn_ctcpmux_destroy
@@ -230,17 +231,18 @@ static void nn_ctcpmux_stop (struct nn_epbase *self)
     nn_fsm_stop (&ctcpmux->fsm);
 }
 
-static void nn_ctcpmux_destroy (struct nn_epbase *self)
+static void nn_ctcpmux_destroy (struct nn_epbase *self,
+    enum nn_cleanup_opt cleanopt)
 {
     struct nn_ctcpmux *ctcpmux;
 
     ctcpmux = nn_cont (self, struct nn_ctcpmux, epbase);
 
-    nn_dns_term (&ctcpmux->dns);
-    nn_stcpmux_term (&ctcpmux->stcpmux);
-    nn_backoff_term (&ctcpmux->retry);
-    nn_usock_term (&ctcpmux->usock);
-    nn_fsm_term (&ctcpmux->fsm);
+    nn_dns_term (&ctcpmux->dns, cleanopt);
+    nn_stcpmux_term (&ctcpmux->stcpmux, cleanopt);
+    nn_backoff_term (&ctcpmux->retry, cleanopt);
+    nn_usock_term (&ctcpmux->usock, cleanopt);
+    nn_fsm_term (&ctcpmux->fsm, cleanopt);
     nn_epbase_term (&ctcpmux->epbase);
 
     nn_free (ctcpmux);

@@ -214,7 +214,7 @@ void nn_efd_stop (struct nn_efd *self)
     }
 }
 
-void nn_efd_term (struct nn_efd *self)
+void nn_efd_term (struct nn_efd *self, enum nn_cleanup_opt cleanopt)
 {
     int rc;
     SOCKET s;
@@ -223,13 +223,15 @@ void nn_efd_term (struct nn_efd *self)
     self->r = INVALID_SOCKET;
     if (s != INVALID_SOCKET) {
         rc = closesocket (s);
-        wsa_assert (rc != INVALID_SOCKET);
+        if (nn_fast (!(cleanopt & NN_CLEAN_NO_CHECK)))
+            wsa_assert (rc != INVALID_SOCKET);
     }
     s = self->w;
     self->w = INVALID_SOCKET;
     if (s != INVALID_SOCKET) {
-       rc = closesocket (s);
-       wsa_assert (rc != INVALID_SOCKET);
+        rc = closesocket (s);
+        if (nn_fast (!(cleanopt & NN_CLEAN_NO_CHECK)))
+            wsa_assert (rc != INVALID_SOCKET);
     }
 }
 

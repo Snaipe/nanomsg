@@ -24,6 +24,8 @@
 #ifndef NN_LIST_INCLUDED
 #define NN_LIST_INCLUDED
 
+#include "cleanup.h"
+
 struct nn_list_item {
     struct nn_list_item *next;
     struct nn_list_item *prev;
@@ -85,6 +87,7 @@ void nn_list_item_term (struct nn_list_item *self);
 int nn_list_item_isinlist (struct nn_list_item *self);
 
 /*  Removes and release all items in the list */
-void nn_list_clear (struct nn_list *self, void (*dtor)(struct nn_list_item *));
+void nn_list_clear (struct nn_list *self, enum nn_cleanup_opt cleanopt,
+    void (*dtor)(struct nn_list_item *, enum nn_cleanup_opt cleanopt));
 
 #endif

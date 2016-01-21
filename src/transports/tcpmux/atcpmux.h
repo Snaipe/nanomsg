@@ -31,6 +31,7 @@
 #include "../../aio/usock.h"
 
 #include "../../utils/list.h"
+#include "../../utils/cleanup.h"
 
 /*  State machine handling accepted TCPMUX sockets. */
 
@@ -67,7 +68,7 @@ struct nn_atcpmux {
 
 void nn_atcpmux_init (struct nn_atcpmux *self, int src,
     struct nn_epbase *epbase, struct nn_fsm *owner);
-void nn_atcpmux_term (struct nn_atcpmux *self);
+void nn_atcpmux_term (struct nn_atcpmux *self, enum nn_cleanup_opt cleanopt);
 
 int nn_atcpmux_isidle (struct nn_atcpmux *self);
 void nn_atcpmux_start (struct nn_atcpmux *self, int fd);

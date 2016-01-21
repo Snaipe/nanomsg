@@ -57,15 +57,16 @@ void nn_timer_init (struct nn_timer *self, int src, struct nn_fsm *owner)
     self->timeout = -1;
 }
 
-void nn_timer_term (struct nn_timer *self)
+void nn_timer_term (struct nn_timer *self, enum nn_cleanup_opt cleanopt)
 {
-    nn_assert_state (self, NN_TIMER_STATE_IDLE);
+    if (nn_fast (!(cleanopt & NN_CLEAN_NO_CHECK)))
+        nn_assert_state (self, NN_TIMER_STATE_IDLE);
 
     nn_fsm_event_term (&self->done);
     nn_worker_timer_term (&self->wtimer);
     nn_worker_task_term (&self->stop_task);
     nn_worker_task_term (&self->start_task);
-    nn_fsm_term (&self->fsm);
+    nn_fsm_term (&self->fsm, cleanopt);
 }
 
 int nn_timer_isidle (struct nn_timer *self)

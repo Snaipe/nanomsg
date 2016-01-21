@@ -52,12 +52,13 @@ void nn_dns_init (struct nn_dns *self, int src, struct nn_fsm *owner)
     nn_fsm_event_init (&self->done);
 }
 
-void nn_dns_term (struct nn_dns *self)
+void nn_dns_term (struct nn_dns *self, enum nn_cleanup_opt cleanopt)
 {
-    nn_assert_state (self, NN_DNS_STATE_IDLE);
+    if (nn_fast (!(cleanopt & NN_CLEAN_NO_CHECK)))
+        nn_assert_state (self, NN_DNS_STATE_IDLE);
 
     nn_fsm_event_term (&self->done);
-    nn_fsm_term (&self->fsm);
+    nn_fsm_term (&self->fsm, cleanopt);
 }
 
 int nn_dns_isidle (struct nn_dns *self)

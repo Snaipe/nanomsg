@@ -31,6 +31,7 @@
 #include "../../aio/usock.h"
 
 #include "../../utils/list.h"
+#include "../../utils/cleanup.h"
 
 /*  State machine handling accepted IPC sockets. */
 
@@ -70,7 +71,7 @@ struct nn_aipc {
 
 void nn_aipc_init (struct nn_aipc *self, int src,
     struct nn_epbase *epbase, struct nn_fsm *owner);
-void nn_aipc_term (struct nn_aipc *self);
+void nn_aipc_term (struct nn_aipc *self, enum nn_cleanup_opt cleanopt);
 
 int nn_aipc_isidle (struct nn_aipc *self);
 void nn_aipc_start (struct nn_aipc *self, struct nn_usock *listener);

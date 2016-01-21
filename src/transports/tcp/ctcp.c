@@ -96,7 +96,8 @@ struct nn_ctcp {
 
 /*  nn_epbase virtual interface implementation. */
 static void nn_ctcp_stop (struct nn_epbase *self);
-static void nn_ctcp_destroy (struct nn_epbase *self);
+static void nn_ctcp_destroy (struct nn_epbase *self,
+    enum nn_cleanup_opt cleanopt);
 const struct nn_epbase_vfptr nn_ctcp_epbase_vfptr = {
     nn_ctcp_stop,
     nn_ctcp_destroy
@@ -217,17 +218,18 @@ static void nn_ctcp_stop (struct nn_epbase *self)
     nn_fsm_stop (&ctcp->fsm);
 }
 
-static void nn_ctcp_destroy (struct nn_epbase *self)
+static void nn_ctcp_destroy (struct nn_epbase *self,
+    enum nn_cleanup_opt cleanopt)
 {
     struct nn_ctcp *ctcp;
 
     ctcp = nn_cont (self, struct nn_ctcp, epbase);
 
-    nn_dns_term (&ctcp->dns);
-    nn_stcp_term (&ctcp->stcp);
-    nn_backoff_term (&ctcp->retry);
-    nn_usock_term (&ctcp->usock);
-    nn_fsm_term (&ctcp->fsm);
+    nn_dns_term (&ctcp->dns, cleanopt);
+    nn_stcp_term (&ctcp->stcp, cleanopt);
+    nn_backoff_term (&ctcp->retry, cleanopt);
+    nn_usock_term (&ctcp->usock, cleanopt);
+    nn_fsm_term (&ctcp->fsm, cleanopt);
     nn_epbase_term (&ctcp->epbase);
 
     nn_free (ctcp);

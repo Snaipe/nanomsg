@@ -160,16 +160,17 @@ void nn_sws_init (struct nn_sws *self, int src,
     nn_fsm_event_init (&self->done);
 }
 
-void nn_sws_term (struct nn_sws *self)
+void nn_sws_term (struct nn_sws *self, enum nn_cleanup_opt cleanopt)
 {
-    nn_assert_state (self, NN_SWS_STATE_IDLE);
+    if (nn_fast (!(cleanopt & NN_CLEAN_NO_CHECK)))
+        nn_assert_state (self, NN_SWS_STATE_IDLE);
 
     nn_fsm_event_term (&self->done);
     nn_msg_term (&self->outmsg);
     nn_msg_array_term (&self->inmsg_array);
-    nn_pipebase_term (&self->pipebase);
-    nn_ws_handshake_term (&self->handshaker);
-    nn_fsm_term (&self->fsm);
+    nn_pipebase_term (&self->pipebase, cleanopt);
+    nn_ws_handshake_term (&self->handshaker, cleanopt);
+    nn_fsm_term (&self->fsm, cleanopt);
 }
 
 int nn_sws_isidle (struct nn_sws *self)

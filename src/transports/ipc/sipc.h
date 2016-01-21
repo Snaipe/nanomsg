@@ -31,6 +31,7 @@
 #include "../utils/streamhdr.h"
 
 #include "../../utils/msg.h"
+#include "../../utils/cleanup.h"
 
 /*  This state machine handles IPC connection from the point where it is
     established to the point when it is broken. */
@@ -80,7 +81,7 @@ struct nn_sipc {
 
 void nn_sipc_init (struct nn_sipc *self, int src,
     struct nn_epbase *epbase, struct nn_fsm *owner);
-void nn_sipc_term (struct nn_sipc *self);
+void nn_sipc_term (struct nn_sipc *self, enum nn_cleanup_opt cleanopt);
 
 int nn_sipc_isidle (struct nn_sipc *self);
 void nn_sipc_start (struct nn_sipc *self, struct nn_usock *usock);

@@ -38,10 +38,10 @@ struct nn_bus {
 /*  Private functions. */
 static void nn_bus_init (struct nn_bus *self,
     const struct nn_sockbase_vfptr *vfptr, void *hint);
-static void nn_bus_term (struct nn_bus *self);
+static void nn_bus_term (struct nn_bus *self, enum nn_cleanup_opt cleanopt);
 
 /*  Implementation of nn_sockbase's virtual functions. */
-static void nn_bus_destroy (struct nn_sockbase *self);
+static void nn_bus_destroy (struct nn_sockbase *self, enum nn_cleanup_opt cleanopt);
 static int nn_bus_send (struct nn_sockbase *self, struct nn_msg *msg);
 static int nn_bus_recv (struct nn_sockbase *self, struct nn_msg *msg);
 static const struct nn_sockbase_vfptr nn_bus_sockbase_vfptr = {
@@ -64,18 +64,18 @@ static void nn_bus_init (struct nn_bus *self,
     nn_xbus_init (&self->xbus, vfptr, hint);
 }
 
-static void nn_bus_term (struct nn_bus *self)
+static void nn_bus_term (struct nn_bus *self, enum nn_cleanup_opt cleanopt)
 {
-    nn_xbus_term (&self->xbus);
+    nn_xbus_term (&self->xbus, cleanopt);
 }
 
-static void nn_bus_destroy (struct nn_sockbase *self)
+static void nn_bus_destroy (struct nn_sockbase *self, enum nn_cleanup_opt cleanopt)
 {
     struct nn_bus *bus;
 
     bus = nn_cont (self, struct nn_bus, xbus.sockbase);
 
-    nn_bus_term (bus);
+    nn_bus_term (bus, cleanopt);
     nn_free (bus);
 }
 

@@ -37,7 +37,8 @@
 #include <string.h>
 
 /*  Private functions. */
-static void nn_xrep_destroy (struct nn_sockbase *self);
+static void nn_xrep_destroy (struct nn_sockbase *self,
+    enum nn_cleanup_opt cleanopt);
 
 static const struct nn_sockbase_vfptr nn_xrep_sockbase_vfptr = {
     NULL,
@@ -66,20 +67,21 @@ void nn_xrep_init (struct nn_xrep *self, const struct nn_sockbase_vfptr *vfptr,
     nn_fq_init (&self->inpipes);
 }
 
-void nn_xrep_term (struct nn_xrep *self)
+void nn_xrep_term (struct nn_xrep *self, enum nn_cleanup_opt cleanopt)
 {
     nn_fq_term (&self->inpipes);
     nn_hash_term (&self->outpipes);
     nn_sockbase_term (&self->sockbase);
 }
 
-static void nn_xrep_destroy (struct nn_sockbase *self)
+static void nn_xrep_destroy (struct nn_sockbase *self,
+    enum nn_cleanup_opt cleanopt)
 {
     struct nn_xrep *xrep;
 
     xrep = nn_cont (self, struct nn_xrep, sockbase);
 
-    nn_xrep_term (xrep);
+    nn_xrep_term (xrep, cleanopt);
     nn_free (xrep);
 }
 

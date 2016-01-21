@@ -65,13 +65,14 @@ void nn_streamhdr_init (struct nn_streamhdr *self, int src,
     self->pipebase = NULL;
 }
 
-void nn_streamhdr_term (struct nn_streamhdr *self)
+void nn_streamhdr_term (struct nn_streamhdr *self, enum nn_cleanup_opt copt)
 {
-    nn_assert_state (self, NN_STREAMHDR_STATE_IDLE);
+    if (nn_fast (!(copt & NN_CLEAN_NO_CHECK)))
+        nn_assert_state (self, NN_STREAMHDR_STATE_IDLE);
 
     nn_fsm_event_term (&self->done);
-    nn_timer_term (&self->timer);
-    nn_fsm_term (&self->fsm);
+    nn_timer_term (&self->timer, copt);
+    nn_fsm_term (&self->fsm, copt);
 }
 
 int nn_streamhdr_isidle (struct nn_streamhdr *self)

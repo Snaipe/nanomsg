@@ -71,14 +71,14 @@ void nn_efd_stop (struct nn_efd *self)
     nn_closefd (fd);
 }
 
-void nn_efd_term (struct nn_efd *self)
+void nn_efd_term (struct nn_efd *self, enum nn_cleanup_opt cleanopt)
 {
     int fd = self->r;
     self->r = -1;
-    nn_closefd (fd);
+    nn_closefd (fd, cleanopt);
     fd = self->w;
     self->w = -1;
-    nn_closefd (fd);
+    nn_closefd (fd, cleanopt);
 }
 
 nn_fd nn_efd_getfd (struct nn_efd *self)

@@ -31,6 +31,7 @@
 #include "../utils/streamhdr.h"
 
 #include "../../utils/msg.h"
+#include "../../utils/cleanup.h"
 
 /*  This state machine handles TCPMUX connection from the point where it is
     established to the point when it is broken. */
@@ -80,7 +81,7 @@ struct nn_stcpmux {
 
 void nn_stcpmux_init (struct nn_stcpmux *self, int src,
     struct nn_epbase *epbase, struct nn_fsm *owner);
-void nn_stcpmux_term (struct nn_stcpmux *self);
+void nn_stcpmux_term (struct nn_stcpmux *self, enum nn_cleanup_opt cleanopt);
 
 int nn_stcpmux_isidle (struct nn_stcpmux *self);
 void nn_stcpmux_start (struct nn_stcpmux *self, struct nn_usock *usock);

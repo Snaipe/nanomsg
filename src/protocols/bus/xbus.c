@@ -42,7 +42,8 @@
 CT_ASSERT (sizeof (uint64_t) >= sizeof (struct nn_pipe*));
 
 /*  Implementation of nn_sockbase's virtual functions. */
-static void nn_xbus_destroy (struct nn_sockbase *self);
+static void nn_xbus_destroy (struct nn_sockbase *self,
+    enum nn_cleanup_opt cleanopt);
 static const struct nn_sockbase_vfptr nn_xbus_sockbase_vfptr = {
     NULL,
     nn_xbus_destroy,
@@ -65,20 +66,21 @@ void nn_xbus_init (struct nn_xbus *self,
     nn_fq_init (&self->inpipes);
 }
 
-void nn_xbus_term (struct nn_xbus *self)
+void nn_xbus_term (struct nn_xbus *self, enum nn_cleanup_opt cleanopt)
 {
     nn_fq_term (&self->inpipes);
     nn_dist_term (&self->outpipes);
     nn_sockbase_term (&self->sockbase);
 }
 
-static void nn_xbus_destroy (struct nn_sockbase *self)
+static void nn_xbus_destroy (struct nn_sockbase *self,
+    enum nn_cleanup_opt cleanopt)
 {
     struct nn_xbus *xbus;
 
     xbus = nn_cont (self, struct nn_xbus, sockbase);
 
-    nn_xbus_term (xbus);
+    nn_xbus_term (xbus, cleanopt);
     nn_free (xbus);
 }
 

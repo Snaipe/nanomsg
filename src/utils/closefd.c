@@ -29,13 +29,16 @@
 
 #include <unistd.h>
 
-void nn_closefd (int fd)
+void nn_closefd (int fd, enum nn_cleanup_opt cleanopt)
 {
     int rc;
     if (nn_slow (fd < 0)) {
         return;
     }
     rc = close (fd);
+    if (nn_slow (cleanopt & NN_CLEAN_NO_CHECK))
+        return;
+
     if (nn_fast (rc == 0))
         return;
     errno_assert (errno == EINTR || errno == ETIMEDOUT ||

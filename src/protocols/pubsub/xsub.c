@@ -49,10 +49,11 @@ struct nn_xsub {
 /*  Private functions. */
 static void nn_xsub_init (struct nn_xsub *self,
     const struct nn_sockbase_vfptr *vfptr, void *hint);
-static void nn_xsub_term (struct nn_xsub *self);
+static void nn_xsub_term (struct nn_xsub *self, enum nn_cleanup_opt cleanopt);
 
 /*  Implementation of nn_sockbase's virtual functions. */
-static void nn_xsub_destroy (struct nn_sockbase *self);
+static void nn_xsub_destroy (struct nn_sockbase *self,
+    enum nn_cleanup_opt cleanopt);
 static int nn_xsub_add (struct nn_sockbase *self, struct nn_pipe *pipe);
 static void nn_xsub_rm (struct nn_sockbase *self, struct nn_pipe *pipe);
 static void nn_xsub_in (struct nn_sockbase *self, struct nn_pipe *pipe);
@@ -85,20 +86,20 @@ static void nn_xsub_init (struct nn_xsub *self,
     nn_trie_init (&self->trie);
 }
 
-static void nn_xsub_term (struct nn_xsub *self)
+static void nn_xsub_term (struct nn_xsub *self, enum nn_cleanup_opt cleanopt)
 {
     nn_trie_term (&self->trie);
     nn_fq_term (&self->fq);
     nn_sockbase_term (&self->sockbase);
 }
 
-void nn_xsub_destroy (struct nn_sockbase *self)
+void nn_xsub_destroy (struct nn_sockbase *self, enum nn_cleanup_opt cleanopt)
 {
     struct nn_xsub *xsub;
 
     xsub = nn_cont (self, struct nn_xsub, sockbase);
 
-    nn_xsub_term (xsub);
+    nn_xsub_term (xsub, cleanopt);
     nn_free (xsub);
 }
 

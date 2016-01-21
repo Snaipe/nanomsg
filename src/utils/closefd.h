@@ -25,7 +25,9 @@
 
 #if !defined NN_HAVE_WINDOWS
 
-void nn_closefd (int fd);
+#include "cleanup.h"
+
+void nn_closefd (int fd, enum nn_cleanup_opt cleanopt);
 
 #endif
 

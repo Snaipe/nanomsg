@@ -42,10 +42,11 @@ struct nn_xpair {
 /*  Private functions. */
 static void nn_xpair_init (struct nn_xpair *self,
     const struct nn_sockbase_vfptr *vfptr, void *hint);
-static void nn_xpair_term (struct nn_xpair *self);
+static void nn_xpair_term (struct nn_xpair *self, enum nn_cleanup_opt cleanopt);
 
 /*  Implementation of nn_sockbase's virtual functions. */
-static void nn_xpair_destroy (struct nn_sockbase *self);
+static void nn_xpair_destroy (struct nn_sockbase *self,
+    enum nn_cleanup_opt cleanopt);
 static int nn_xpair_add (struct nn_sockbase *self, struct nn_pipe *pipe);
 static void nn_xpair_rm (struct nn_sockbase *self, struct nn_pipe *pipe);
 static void nn_xpair_in (struct nn_sockbase *self, struct nn_pipe *pipe);
@@ -78,19 +79,20 @@ static void nn_xpair_init (struct nn_xpair *self,
     nn_excl_init (&self->excl);
 }
 
-static void nn_xpair_term (struct nn_xpair *self)
+static void nn_xpair_term (struct nn_xpair *self, enum nn_cleanup_opt cleanopt)
 {
-    nn_excl_term (&self->excl);
+    nn_excl_term (&self->excl, cleanopt);
     nn_sockbase_term (&self->sockbase);
 }
 
-void nn_xpair_destroy (struct nn_sockbase *self)
+void nn_xpair_destroy (struct nn_sockbase *self,
+    enum nn_cleanup_opt cleanopt)
 {
     struct nn_xpair *xpair;
 
     xpair = nn_cont (self, struct nn_xpair, sockbase);
 
-    nn_xpair_term (xpair);
+    nn_xpair_term (xpair, cleanopt);
     nn_free (xpair);
 }
 

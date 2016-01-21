@@ -90,7 +90,8 @@ struct nn_btcp {
 
 /*  nn_epbase virtual interface implementation. */
 static void nn_btcp_stop (struct nn_epbase *self);
-static void nn_btcp_destroy (struct nn_epbase *self);
+static void nn_btcp_destroy (struct nn_epbase *self,
+    enum nn_cleanup_opt cleanopt);
 const struct nn_epbase_vfptr nn_btcp_epbase_vfptr = {
     nn_btcp_stop,
     nn_btcp_destroy
@@ -192,19 +193,22 @@ static void nn_btcp_stop (struct nn_epbase *self)
     nn_fsm_stop (&btcp->fsm);
 }
 
-static void nn_btcp_destroy (struct nn_epbase *self)
+static void nn_btcp_destroy (struct nn_epbase *self,
+    enum nn_cleanup_opt cleanopt)
 {
     struct nn_btcp *btcp;
 
     btcp = nn_cont (self, struct nn_btcp, epbase);
 
-    nn_assert_state (btcp, NN_BTCP_STATE_IDLE);
+    if (nn_fast (!(cleanopt & NN_CLEAN_NO_CHECK)))
+        nn_assert_state (btcp, NN_BTCP_STATE_IDLE);
+
     nn_list_term (&btcp->atcps);
     nn_assert (btcp->atcp == NULL);
-    nn_usock_term (&btcp->usock);
-    nn_backoff_term (&btcp->retry);
+    nn_usock_term (&btcp->usock, cleanopt);
+    nn_backoff_term (&btcp->retry, cleanopt);
     nn_epbase_term (&btcp->epbase);
-    nn_fsm_term (&btcp->fsm);
+    nn_fsm_term (&btcp->fsm, cleanopt);
 
     nn_free (btcp);
 }
@@ -231,7 +235,7 @@ static void nn_btcp_shutdown (struct nn_fsm *self, int src, int type,
     if (nn_slow (btcp->state == NN_BTCP_STATE_STOPPING_ATCP)) {
         if (!nn_atcp_isidle (btcp->atcp))
             return;
-        nn_atcp_term (btcp->atcp);
+        nn_atcp_term (btcp->atcp, NN_CLEAN_DEFAULT);
         nn_free (btcp->atcp);
         btcp->atcp = NULL;
         nn_usock_stop (&btcp->usock);
@@ -254,7 +258,7 @@ static void nn_btcp_shutdown (struct nn_fsm *self, int src, int type,
         nn_assert (src == NN_BTCP_SRC_ATCP && type == NN_ATCP_STOPPED);
         atcp = (struct nn_atcp *) srcptr;
         nn_list_erase (&btcp->atcps, &atcp->item);
-        nn_atcp_term (atcp);
+        nn_atcp_term (atcp, NN_CLEAN_DEFAULT);
         nn_free (atcp);
 
         /*  If there are no more atcp state machines, we can stop the whole
@@ -337,7 +341,7 @@ static void nn_btcp_handler (struct nn_fsm *self, int src, int type,
             return;
         case NN_ATCP_STOPPED:
             nn_list_erase (&btcp->atcps, &atcp->item);
-            nn_atcp_term (atcp);
+            nn_atcp_term (atcp, NN_CLEAN_DEFAULT);
             nn_free (atcp);
             return;
         default:

@@ -105,7 +105,7 @@ int nn_sock_init (struct nn_sock *self, struct nn_socktype *socktype, int fd)
         rc = nn_efd_init (&self->rcvfd);
         if (nn_slow (rc < 0)) {
             if (!(socktype->flags & NN_SOCKTYPE_FLAG_NOSEND))
-                nn_efd_term (&self->sndfd);
+                nn_efd_term (&self->sndfd, NN_CLEAN_DEFAULT);
             return rc;
         }
     }
@@ -113,9 +113,9 @@ int nn_sock_init (struct nn_sock *self, struct nn_socktype *socktype, int fd)
     nn_sem_init (&self->relesem);
     if (nn_slow (rc < 0)) {
         if (!(socktype->flags & NN_SOCKTYPE_FLAG_NORECV))
-            nn_efd_term (&self->rcvfd);
+            nn_efd_term (&self->rcvfd, NN_CLEAN_DEFAULT);
         if (!(socktype->flags & NN_SOCKTYPE_FLAG_NOSEND))
-            nn_efd_term (&self->sndfd);
+            nn_efd_term (&self->sndfd, NN_CLEAN_DEFAULT);
         return rc;
     }
 
@@ -248,14 +248,16 @@ int nn_sock_term (struct nn_sock *self)
     return 0;
 }
 
-void nn_release_endpoint (struct nn_list_item *it)
+static void nn_release_endpoint (struct nn_list_item *it,
+    enum nn_cleanup_opt cleanopt)
 {
     struct nn_ep *ep = nn_cont (it, struct nn_ep, item);
-    /* TODO: force cleanup the endpoint */
+    nn_ep_term (ep, cleanopt);
     nn_free (ep);
 }
 
-void nn_release_stopped_endpoint (struct nn_list_item *it)
+static void nn_release_stopped_endpoint (struct nn_list_item *it,
+    enum nn_cleanup_opt cleanopt)
 {
     struct nn_ep *ep = nn_cont (it, struct nn_ep, item);
     nn_free (ep);
@@ -267,26 +269,25 @@ void nn_sock_unsafe_cleanup (struct nn_sock *self, enum nn_cleanup_opt opts)
 
     /*  Cleanup. */
     if (opts & NN_CLEAN_EMPTY) {
-        /* TODO: Force destroy the socket base */
-        /* self->sockbase->vfptr->destroy (self->sockbase); */
+        self->sockbase->vfptr->destroy (self->sockbase, opts);
         self->state = NN_SOCK_STATE_FINI;
 
         if (!(self->socktype->flags & NN_SOCKTYPE_FLAG_NORECV)) {
-            nn_efd_term (&self->rcvfd);
+            nn_efd_term (&self->rcvfd, opts);
         }
         if (!(self->socktype->flags & NN_SOCKTYPE_FLAG_NOSEND)) {
-            nn_efd_term (&self->sndfd);
+            nn_efd_term (&self->sndfd, opts);
         }
 
         nn_fsm_unsafe_stop (&self->fsm);
     }
 
     nn_fsm_stopped_noevent (&self->fsm);
-    nn_fsm_term (&self->fsm);
+    nn_fsm_term (&self->fsm, opts);
     nn_sem_term (&self->termsem);
-    if (opts & NN_CLEAN_EMPTY) {
-        nn_list_clear (&self->sdeps, nn_release_stopped_endpoint);
-        nn_list_clear (&self->eps, nn_release_endpoint);
+    if (nn_slow(opts & NN_CLEAN_EMPTY)) {
+        nn_list_clear (&self->sdeps, opts, nn_release_stopped_endpoint);
+        nn_list_clear (&self->eps, opts, nn_release_endpoint);
     }
     nn_list_term (&self->sdeps);
     nn_list_term (&self->eps);
@@ -949,7 +950,7 @@ static void nn_sock_shutdown (struct nn_fsm *self, int src, int type,
         /*  Endpoint is stopped. Now we can safely deallocate it. */
         ep = (struct nn_ep*) srcptr;
         nn_list_erase (&sock->sdeps, &ep->item);
-        nn_ep_term (ep);
+        nn_ep_term (ep, NN_CLEAN_DEFAULT);
         nn_free (ep);
 
 finish2:
@@ -974,15 +975,15 @@ finish2:
 finish1:
         /*  Protocol-specific part of the socket is stopped.
             We can safely deallocate it. */
-        sock->sockbase->vfptr->destroy (sock->sockbase);
+        sock->sockbase->vfptr->destroy (sock->sockbase, NN_CLEAN_DEFAULT);
         sock->state = NN_SOCK_STATE_FINI;
 
         /*  Close the event FDs entirely. */
         if (!(sock->socktype->flags & NN_SOCKTYPE_FLAG_NORECV)) {
-            nn_efd_term (&sock->rcvfd);
+            nn_efd_term (&sock->rcvfd, NN_CLEAN_DEFAULT);
         }
         if (!(sock->socktype->flags & NN_SOCKTYPE_FLAG_NOSEND)) {
-            nn_efd_term (&sock->sndfd);
+            nn_efd_term (&sock->sndfd, NN_CLEAN_DEFAULT);
         }
 
         /*  Now we can unblock the application thread blocked in
@@ -1050,7 +1051,7 @@ static void nn_sock_handler (struct nn_fsm *self, int src, int type,
                     nn_shutdown() function. */
                 ep = (struct nn_ep*) srcptr;
                 nn_list_erase (&sock->sdeps, &ep->item);
-                nn_ep_term (ep);
+                nn_ep_term (ep, NN_CLEAN_DEFAULT);
                 nn_free (ep);
                 return;
 

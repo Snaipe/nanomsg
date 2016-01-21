@@ -71,7 +71,7 @@ struct nn_aws {
 
 void nn_aws_init (struct nn_aws *self, int src,
     struct nn_epbase *epbase, struct nn_fsm *owner);
-void nn_aws_term (struct nn_aws *self);
+void nn_aws_term (struct nn_aws *self, enum nn_cleanup_opt cleanopt);
 
 int nn_aws_isidle (struct nn_aws *self);
 void nn_aws_start (struct nn_aws *self, struct nn_usock *listener);

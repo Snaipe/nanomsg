@@ -86,7 +86,7 @@ void nn_sinproc_init (struct nn_sinproc *self, int src,
     nn_list_item_init (&self->item);
 }
 
-void nn_sinproc_term (struct nn_sinproc *self)
+void nn_sinproc_term (struct nn_sinproc *self, enum nn_cleanup_opt cleanopt)
 {
     nn_list_item_term (&self->item);
     nn_fsm_event_term (&self->event_disconnect);
@@ -95,8 +95,8 @@ void nn_sinproc_term (struct nn_sinproc *self)
     nn_fsm_event_term (&self->event_connect);
     nn_msg_term (&self->msg);
     nn_msgqueue_term (&self->msgqueue);
-    nn_pipebase_term (&self->pipebase);
-    nn_fsm_term (&self->fsm);
+    nn_pipebase_term (&self->pipebase, cleanopt);
+    nn_fsm_term (&self->fsm, cleanopt);
 }
 
 int nn_sinproc_isidle (struct nn_sinproc *self)

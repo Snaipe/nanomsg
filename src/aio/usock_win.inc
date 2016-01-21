@@ -95,9 +95,13 @@ void nn_usock_init (struct nn_usock *self, int src, struct nn_fsm *owner)
     self->pipesendbuf = NULL;
 }
 
-void nn_usock_term (struct nn_usock *self)
+void nn_usock_term (struct nn_usock *self, enum nn_cleanup_opt cleanopt)
 {
-    nn_assert_state (self, NN_USOCK_STATE_IDLE);
+    if (nn_fast (!(cleanopt & NN_CLEAN_NO_CHECK)))
+        nn_assert_state (self, NN_USOCK_STATE_IDLE);
+
+    if (nn_slow (cleanopt & NN_CLEAN_EMPTY))
+        CloseHandle(self->p);
 
     if (self->ainfo)
         nn_free (self->ainfo);
@@ -109,7 +113,7 @@ void nn_usock_term (struct nn_usock *self)
     nn_fsm_event_term (&self->event_established);
     nn_worker_op_term (&self->out);
     nn_worker_op_term (&self->in);
-    nn_fsm_term (&self->fsm);
+    nn_fsm_term (&self->fsm, cleanopt);
 }
 
 int nn_usock_isidle (struct nn_usock *self)

@@ -122,9 +122,13 @@ void nn_usock_init (struct nn_usock *self, int src, struct nn_fsm *owner)
     self->asock = NULL;
 }
 
-void nn_usock_term (struct nn_usock *self)
+void nn_usock_term (struct nn_usock *self, enum nn_cleanup_opt cleanopt)
 {
-    nn_assert_state (self, NN_USOCK_STATE_IDLE);
+    if (nn_fast (!(cleanopt & NN_CLEAN_NO_CHECK)))
+        nn_assert_state (self, NN_USOCK_STATE_IDLE);
+
+    if (nn_slow (cleanopt & NN_CLEAN_EMPTY))
+        nn_closefd(self->s, cleanopt);
 
     if (self->in.batch)
         nn_free (self->in.batch);
@@ -134,7 +138,8 @@ void nn_usock_term (struct nn_usock *self)
     nn_fsm_event_term (&self->event_sent);
     nn_fsm_event_term (&self->event_established);
 
-    nn_worker_cancel (self->worker, &self->task_recv);
+    if (nn_fast (!(cleanopt & NN_CLEAN_NO_THREADS)))
+        nn_worker_cancel (self->worker, &self->task_recv);
 
     nn_worker_task_term (&self->task_stop);
     nn_worker_task_term (&self->task_recv);
@@ -144,7 +149,7 @@ void nn_usock_term (struct nn_usock *self)
     nn_worker_task_term (&self->task_connecting);
     nn_worker_fd_term (&self->wfd);
 
-    nn_fsm_term (&self->fsm);
+    nn_fsm_term (&self->fsm, cleanopt);
 }
 
 int nn_usock_isidle (struct nn_usock *self)
@@ -572,7 +577,7 @@ static void nn_usock_shutdown (struct nn_fsm *self, int src, int type,
         nn_assert (type == NN_WORKER_TASK_EXECUTE);
         nn_worker_rm_fd (usock->worker, &usock->wfd);
 finish1:
-        nn_closefd (usock->s);
+        nn_closefd (usock->s, NN_CLEAN_DEFAULT);
         usock->s = -1;
 finish2:
         usock->state = NN_USOCK_STATE_IDLE;
@@ -707,7 +712,7 @@ static void nn_usock_handler (struct nn_fsm *self, int src, int type,
                     NN_USOCK_CONNECTED);
                 return;
             case NN_USOCK_ACTION_ERROR:
-                nn_closefd (usock->s);
+                nn_closefd (usock->s, NN_CLEAN_DEFAULT);
                 usock->s = -1;
                 usock->state = NN_USOCK_STATE_DONE;
                 nn_fsm_raise (&usock->fsm, &usock->event_error,
@@ -738,7 +743,7 @@ static void nn_usock_handler (struct nn_fsm *self, int src, int type,
                 return;
             case NN_WORKER_FD_ERR:
                 nn_worker_rm_fd (usock->worker, &usock->wfd);
-                nn_closefd (usock->s);
+                nn_closefd (usock->s, NN_CLEAN_DEFAULT);
                 usock->s = -1;
                 usock->state = NN_USOCK_STATE_DONE;
                 nn_fsm_raise (&usock->fsm, &usock->event_error, NN_USOCK_ERROR);
@@ -788,7 +793,7 @@ static void nn_usock_handler (struct nn_fsm *self, int src, int type,
             case NN_WORKER_FD_ERR:
 error:
                 nn_worker_rm_fd (usock->worker, &usock->wfd);
-                nn_closefd (usock->s);
+                nn_closefd (usock->s, NN_CLEAN_DEFAULT);
                 usock->s = -1;
                 usock->state = NN_USOCK_STATE_DONE;
                 nn_fsm_raise (&usock->fsm, &usock->event_error, NN_USOCK_ERROR);
@@ -818,7 +823,7 @@ error:
             switch (type) {
             case NN_WORKER_TASK_EXECUTE:
                 nn_worker_rm_fd (usock->worker, &usock->wfd);
-                nn_closefd (usock->s);
+                nn_closefd (usock->s, NN_CLEAN_DEFAULT);
                 usock->s = -1;
                 usock->state = NN_USOCK_STATE_DONE;
                 nn_fsm_raise (&usock->fsm, &usock->event_error, NN_USOCK_ERROR);
@@ -1131,7 +1136,7 @@ static int nn_usock_recv_raw (struct nn_usock *self, void *buf, size_t *len)
                     self->in.pfd = NULL;
                 }
                 else {
-                    nn_closefd (*((int*) CMSG_DATA (cmsg)));
+                    nn_closefd (*((int*) CMSG_DATA (cmsg)), NN_CLEAN_DEFAULT);
                 }
                 break;
             }
@@ -1145,7 +1150,7 @@ static int nn_usock_recv_raw (struct nn_usock *self, void *buf, size_t *len)
                 self->in.pfd = NULL;
             }
             else {
-                nn_closefd (*((int*) hdr.msg_accrights));
+                nn_closefd (*((int*) hdr.msg_accrights), NN_CLEAN_DEFAULT);
             }
         }
 #endif
