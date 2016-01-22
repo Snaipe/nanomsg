@@ -152,10 +152,12 @@ void nn_worker_term (struct nn_worker *self, enum nn_cleanup_opt cleanopt)
     nn_queue_term (&self->tasks);
     nn_mutex_term (&self->sync);
 
-    nn_sem_post(&self->pause_sem);
+    if (nn_fast (!(cleanopt & NN_CLEAN_NO_CHECK)))
+        nn_sem_post (&self->pause_sem);
     nn_sem_term(&self->pause_sem);
 
-    nn_sem_post(&self->resume_sem);
+    if (nn_fast (!(cleanopt & NN_CLEAN_NO_CHECK)))
+        nn_sem_post (&self->resume_sem);
     nn_sem_term(&self->resume_sem);
 }
 
