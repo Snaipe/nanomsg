@@ -83,7 +83,7 @@ void nn_efd_stop (struct nn_efd *self)
     /*  Close the write side, which wakes up pollers with POLLHUP. */
     int fd = self->w;
     self->w = -1;
-    nn_closefd (fd);
+    nn_closefd (fd, NN_CLEAN_DEFAULT);
 }
 
 nn_fd nn_efd_getfd (struct nn_efd *self)

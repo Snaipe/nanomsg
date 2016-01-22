@@ -68,7 +68,7 @@ void nn_efd_stop (struct nn_efd *self)
 {
     int fd = self->w;
     self->w = -1;
-    nn_closefd (fd);
+    nn_closefd (fd, NN_CLEAN_DEFAULT);
 }
 
 void nn_efd_term (struct nn_efd *self, enum nn_cleanup_opt cleanopt)
