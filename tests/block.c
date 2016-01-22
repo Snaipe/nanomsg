@@ -62,7 +62,7 @@ int main ()
     test_recv (sb, "ABC");
     test_recv (sb, "ABC");
 
-    nn_thread_term (&thread);
+    nn_thread_term (&thread, NN_CLEAN_DEFAULT);
 
     test_close (sc);
     test_close (sb);

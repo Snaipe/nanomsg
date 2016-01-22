@@ -67,7 +67,7 @@ int main ()
     errno_assert (nn_errno () == ETERM);
 
     /*  Wait till worker thread terminates. */
-    nn_thread_term (&thread);
+    nn_thread_term (&thread, NN_CLEAN_DEFAULT);
 
     return 0;
 }

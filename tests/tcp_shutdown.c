@@ -96,7 +96,7 @@ int main ()
         for (i = 0; i != THREAD_COUNT; ++i)
             nn_thread_init (&threads [i], routine, NULL);
         for (i = 0; i != THREAD_COUNT; ++i) {
-            nn_thread_term (&threads [i]);
+            nn_thread_term (&threads [i], NN_CLEAN_DEFAULT);
 	}
     }
 
@@ -120,7 +120,7 @@ int main ()
         }
 
         for (i = 0; i != TEST2_THREAD_COUNT; ++i)
-            nn_thread_term (&threads [i]);
+            nn_thread_term (&threads [i], NN_CLEAN_DEFAULT);
         nn_atomic_term(&active);
     }
 

@@ -87,21 +87,26 @@ int nn_worker_init (struct nn_worker *self)
     return 0;
 }
 
-void nn_worker_term (struct nn_worker *self)
+void nn_worker_term (struct nn_worker *self, enum nn_cleanup_opt cleanopt)
 {
     BOOL brc;
 
     /*  Ask worker thread to terminate. */
-    brc = PostQueuedCompletionStatus (self->cp, 0,
-        (ULONG_PTR) &nn_worker_stop, NULL);
-    win_assert (brc);
+    if (nn_fast (!(cleanopt & NN_CLEAN_NO_THREADS))) {
+        brc = PostQueuedCompletionStatus (self->cp, 0,
+            (ULONG_PTR) &nn_worker_stop, NULL);
+
+        if (nn_fast (!(cleanopt & NN_CLEAN_NO_CHECK)))
+            win_assert (brc);
+    }
 
     /*  Wait till worker thread terminates. */
-    nn_thread_term (&self->thread);
+    nn_thread_term (&self->thread, cleanopt);
 
     nn_timerset_term (&self->timerset);
     brc = CloseHandle (self->cp);
-    win_assert (brc);
+    if (nn_fast (!(cleanopt & NN_CLEAN_NO_CHECK)))
+        win_assert (brc);
 }
 
 void nn_worker_execute (struct nn_worker *self, struct nn_worker_task *task)

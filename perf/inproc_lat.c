@@ -113,7 +113,7 @@ int main (int argc, char *argv [])
     printf ("roundtrip count: %d\n", (int) roundtrip_count);
     printf ("average latency: %.3f [us]\n", (double) latency);
 
-    nn_thread_term (&thread);
+    nn_thread_term (&thread, NN_CLEAN_DEFAULT);
     free (buf);
     rc = nn_close (s);
     assert (rc == 0);

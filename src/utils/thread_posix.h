@@ -29,9 +29,3 @@ struct nn_thread
     void *arg;
     pthread_t handle;
 };
-
-/* Join a thread without error handling, to release any resources allocated
-   by a dead thread.
-   NOTE: This function is here to allow nanomsg to reset its state after
-   a fork, when *everything* is broken. USE WITH CARE. */
-void nn_thread_unsafe_term (struct nn_thread *self);

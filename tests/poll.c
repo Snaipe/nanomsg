@@ -177,7 +177,7 @@ int main ()
     rc = getevents (sb, NN_IN, 1000);
     nn_assert (rc == NN_IN);
     test_recv (sb, "ABC");
-    nn_thread_term (&thread);
+    nn_thread_term (&thread, NN_CLEAN_DEFAULT);
 
     /*  Check terminating the library from a different thread. */
     nn_thread_init (&thread, routine2, NULL);
@@ -185,7 +185,7 @@ int main ()
     nn_assert (rc == NN_IN);
     rc = nn_recv (sb, buf, sizeof (buf), 0);
     nn_assert (rc < 0 && nn_errno () == ETERM);
-    nn_thread_term (&thread);
+    nn_thread_term (&thread, NN_CLEAN_DEFAULT);
 
     /*  Clean up. */
     test_close (sc);

@@ -21,6 +21,7 @@
 */
 
 #include "pool.h"
+#include "../utils/cleanup.h"
 
 /*  TODO: The dummy implementation of a thread pool. As for now there's only
     one worker thread created. */
@@ -30,9 +31,9 @@ int nn_pool_init (struct nn_pool *self)
     return nn_worker_init (&self->worker);
 }
 
-void nn_pool_term (struct nn_pool *self)
+void nn_pool_term (struct nn_pool *self, enum nn_cleanup_opt cleanopt)
 {
-    nn_worker_term (&self->worker);
+    nn_worker_term (&self->worker, cleanopt);
 }
 
 struct nn_worker *nn_pool_choose_worker (struct nn_pool *self)

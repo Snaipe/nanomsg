@@ -372,7 +372,7 @@ static void nn_global_term (void)
 
     /*  Shut down the worker threads. */
     if (!self.forked)
-        nn_pool_term (&self.pool);
+        nn_pool_term (&self.pool, NN_CLEAN_DEFAULT);
 
     /* Terminate ctx mutex */
     nn_ctx_term (&self.ctx);

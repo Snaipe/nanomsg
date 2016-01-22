@@ -180,9 +180,9 @@ int main ()
 
     /*  Shut down the devices. */
     nn_term ();
-    nn_thread_term (&thread1);
-    nn_thread_term (&thread2);
-    nn_thread_term (&thread3);
+    nn_thread_term (&thread1, NN_CLEAN_DEFAULT);
+    nn_thread_term (&thread2, NN_CLEAN_DEFAULT);
+    nn_thread_term (&thread3, NN_CLEAN_DEFAULT);
 
     return 0;
 }

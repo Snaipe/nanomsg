@@ -108,7 +108,7 @@ int main()
     for (i = 0; i != THREAD_COUNT; ++i)
         nn_thread_init(&cli_threads[i], client, (void *)(intptr_t)i);
     for (i = 0; i != THREAD_COUNT; ++i)
-        nn_thread_term(&cli_threads[i]);
+        nn_thread_term(&cli_threads[i], NN_CLEAN_DEFAULT);
 
     return 0;
 }

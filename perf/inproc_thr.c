@@ -109,7 +109,7 @@ int main (int argc, char *argv [])
 
     elapsed = nn_stopwatch_term (&stopwatch);
 
-    nn_thread_term (&thread);
+    nn_thread_term (&thread, NN_CLEAN_DEFAULT);
     free (buf);
     rc = nn_close (s);
     assert (rc == 0);

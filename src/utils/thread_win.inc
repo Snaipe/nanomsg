@@ -41,13 +41,17 @@ void nn_thread_init (struct nn_thread *self,
     win_assert (self->handle != NULL);
 }
 
-void nn_thread_term (struct nn_thread *self)
+void nn_thread_term (struct nn_thread *self, enum nn_cleanup_opt cleanopt)
 {
     DWORD rc;
     BOOL brc;
 
-    rc = WaitForSingleObject (self->handle, INFINITE);
-    win_assert (rc != WAIT_FAILED);
+    if (nn_fast (!(cleanopt & NN_CLEAN_NO_THREADS))) {
+        rc = WaitForSingleObject (self->handle, INFINITE);
+        if (nn_fast (!(cleanopt & NN_CLEAN_NO_CHECK)))
+            win_assert (rc != WAIT_FAILED);
+    }
     brc = CloseHandle (self->handle);
-    win_assert (brc != 0);
+    if (nn_fast (!(cleanopt & NN_CLEAN_NO_CHECK)))
+        win_assert (brc != 0);
 }

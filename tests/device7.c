@@ -112,8 +112,8 @@ int main ()
 
     /*  Shut down the devices. */
     nn_term ();
-    nn_thread_term (&thread5);
-    nn_thread_term (&thread6);
+    nn_thread_term (&thread5, NN_CLEAN_DEFAULT);
+    nn_thread_term (&thread6, NN_CLEAN_DEFAULT);
 
     return 0;
 }

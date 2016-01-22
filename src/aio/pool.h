@@ -24,6 +24,7 @@
 #define NN_POOL_INCLUDED
 
 #include "worker.h"
+#include "../utils/cleanup.h"
 
 /*  Worker thread pool. */
 
@@ -32,7 +33,7 @@ struct nn_pool {
 };
 
 int nn_pool_init (struct nn_pool *self);
-void nn_pool_term (struct nn_pool *self);
+void nn_pool_term (struct nn_pool *self, enum nn_cleanup_opt cleanopt);
 struct nn_worker *nn_pool_choose_worker (struct nn_pool *self);
 
 #endif

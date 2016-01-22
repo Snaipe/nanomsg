@@ -26,6 +26,7 @@
 
 #include "fsm.h"
 #include "timerset.h"
+#include "../utils/cleanup.h"
 
 #if defined NN_HAVE_WINDOWS
 #include "worker_win.h"
@@ -56,7 +57,7 @@ void nn_worker_task_term (struct nn_worker_task *self);
 struct nn_worker;
 
 int nn_worker_init (struct nn_worker *self);
-void nn_worker_term (struct nn_worker *self);
+void nn_worker_term (struct nn_worker *self, enum nn_cleanup_opt cleanopt);
 void nn_worker_execute (struct nn_worker *self, struct nn_worker_task *task);
 void nn_worker_cancel (struct nn_worker *self, struct nn_worker_task *task);
 

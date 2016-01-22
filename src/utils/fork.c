@@ -68,7 +68,7 @@ static void nn_postfork_child_reset (void)
        the lock */
     nn_sem_post (&w->pause_sem);
     nn_worker_resume (w);
-    nn_worker_unsafe_cleanup (w, NN_CLEAN_EMPTY);
+    nn_worker_term (w, NN_CLEAN_RESET_UNSAFE);
 
     nn_global_postfork_cleanup ();
 }

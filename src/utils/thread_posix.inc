@@ -63,15 +63,11 @@ void nn_thread_init (struct nn_thread *self,
     errnum_assert (rc == 0, rc);
 }
 
-void nn_thread_term (struct nn_thread *self)
+void nn_thread_term (struct nn_thread *self, enum nn_cleanup_opt cleanopt)
 {
     int rc;
 
     rc = pthread_join (self->handle, NULL);
-    errnum_assert (rc == 0, rc);
-}
-
-void nn_thread_unsafe_term (struct nn_thread *self)
-{
-    pthread_join (self->handle, NULL);
+    if (nn_fast (!(cleanopt & NN_CLEAN_NO_CHECK)))
+        errnum_assert (rc == 0, rc);
 }

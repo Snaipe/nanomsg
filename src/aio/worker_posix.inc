@@ -125,13 +125,28 @@ int nn_worker_init (struct nn_worker *self)
 }
 
 void nn_worker_unsafe_cleanup (struct nn_worker *self, enum nn_cleanup_opt opt) {
-    if (opt & NN_CLEAN_EMPTY) {
-        nn_thread_unsafe_term (&self->thread);
+}
+
+void nn_worker_term (struct nn_worker *self, enum nn_cleanup_opt cleanopt)
+{
+    /*  Ask worker thread to terminate. */
+    if (nn_fast (!(cleanopt & NN_CLEAN_NO_THREADS))) {
+        nn_mutex_lock (&self->sync);
+        nn_queue_push (&self->tasks, &self->stop);
+        nn_efd_signal (&self->efd);
+        nn_mutex_unlock (&self->sync);
+    }
+
+    /*  Wait till worker thread terminates. */
+    nn_thread_term (&self->thread, cleanopt);
+
+    /*  Clean up. */
+    if (nn_slow (cleanopt & NN_CLEAN_EMPTY)) {
         nn_timerset_clear (&self->timerset);
     }
     nn_timerset_term (&self->timerset);
-    nn_poller_term (&self->poller, opt);
-    nn_efd_term (&self->efd, opt);
+    nn_poller_term (&self->poller, cleanopt);
+    nn_efd_term (&self->efd, cleanopt);
     nn_queue_item_term (&self->stop);
     nn_queue_item_term (&self->pause);
     nn_queue_term (&self->tasks);
@@ -142,21 +157,6 @@ void nn_worker_unsafe_cleanup (struct nn_worker *self, enum nn_cleanup_opt opt) 
 
     nn_sem_post(&self->resume_sem);
     nn_sem_term(&self->resume_sem);
-}
-
-void nn_worker_term (struct nn_worker *self)
-{
-    /*  Ask worker thread to terminate. */
-    nn_mutex_lock (&self->sync);
-    nn_queue_push (&self->tasks, &self->stop);
-    nn_efd_signal (&self->efd);
-    nn_mutex_unlock (&self->sync);
-
-    /*  Wait till worker thread terminates. */
-    nn_thread_term (&self->thread);
-
-    /*  Clean up. */
-    nn_worker_unsafe_cleanup (self, NN_CLEAN_DEFAULT);
 }
 
 void nn_worker_execute (struct nn_worker *self, struct nn_worker_task *task)

@@ -69,7 +69,7 @@ int main ()
         nn_thread_init (&thread, routine, &sb);
         nn_sleep (100);
         test_close (sb);
-        nn_thread_term (&thread);
+        nn_thread_term (&thread, NN_CLEAN_DEFAULT);
     }
 
     return 0;

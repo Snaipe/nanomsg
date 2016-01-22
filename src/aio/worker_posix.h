@@ -72,10 +72,5 @@ void nn_worker_reset_in (struct nn_worker *self, struct nn_worker_fd *fd);
 void nn_worker_set_out (struct nn_worker *self, struct nn_worker_fd *fd);
 void nn_worker_reset_out (struct nn_worker *self, struct nn_worker_fd *fd);
 
-/* Force clean up without notifying the underlying thread.
-   NOTE: This function is here to allow nanomsg to reset its state after
-   a fork, when *everything* is broken. USE WITH CARE. */
-void nn_worker_unsafe_cleanup (struct nn_worker *self, enum nn_cleanup_opt opt);
-
 void nn_worker_pause (struct nn_worker *self);
 void nn_worker_resume (struct nn_worker *self);
