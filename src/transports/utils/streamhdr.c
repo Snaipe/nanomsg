@@ -71,6 +71,8 @@ void nn_streamhdr_term (struct nn_streamhdr *self, enum nn_cleanup_opt copt)
         nn_assert_state (self, NN_STREAMHDR_STATE_IDLE);
 
     nn_fsm_event_term (&self->done);
+    //if (nn_slow (copt & NN_CLEAN_EMPTY))
+        //nn_timer_stop (&self->timer);
     nn_timer_term (&self->timer, copt);
     nn_fsm_term (&self->fsm, copt);
 }

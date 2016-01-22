@@ -82,3 +82,8 @@ int nn_fq_recv (struct nn_fq *self, struct nn_msg *msg, struct nn_pipe **pipe)
     return rc & ~NN_PIPE_RELEASE;
 }
 
+void nn_fq_clear (struct nn_fq *self, enum nn_cleanup_opt cleanopt,
+    void (*dtor)(struct nn_list_item *it, enum nn_cleanup_opt cleanopt))
+{
+    nn_priolist_clear(&self->priolist, cleanopt, dtor);
+}

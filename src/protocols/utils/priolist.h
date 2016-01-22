@@ -99,4 +99,7 @@ void nn_priolist_advance (struct nn_priolist *self, int release);
 /*  Returns current priority. Used for statistics only  */
 int nn_priolist_get_priority (struct nn_priolist *self);
 
+void nn_priolist_clear (struct nn_priolist *self, enum nn_cleanup_opt cleanopt,
+    void (*dtor)(struct nn_list_item *it, enum nn_cleanup_opt cleanopt));
+
 #endif

@@ -63,8 +63,26 @@ void nn_xreq_init (struct nn_xreq *self, const struct nn_sockbase_vfptr *vfptr,
     nn_fq_init (&self->fq);
 }
 
+static void nn_xreq_release_fq (struct nn_list_item *it,
+    enum nn_cleanup_opt cleanopt)
+{
+    struct nn_priolist_data *pdata;
+    struct nn_fq_data *fqdata;
+    struct nn_xreq_data *data;
+
+    pdata   = nn_cont (it, struct nn_priolist_data, item);
+    fqdata  = nn_cont (pdata, struct nn_fq_data, priodata);
+    data    = nn_cont (fqdata, struct nn_xreq_data, fq);
+
+    nn_free (data);
+}
+
 void nn_xreq_term (struct nn_xreq *self, enum nn_cleanup_opt cleanopt)
 {
+    if (nn_slow (cleanopt & NN_CLEAN_EMPTY)) {
+        nn_lb_clear (&self->lb, 0, NULL);
+        nn_fq_clear (&self->fq, cleanopt, nn_xreq_release_fq);
+    }
     nn_fq_term (&self->fq);
     nn_lb_term (&self->lb);
     nn_sockbase_term (&self->sockbase);

@@ -27,6 +27,8 @@
 
 #include "priolist.h"
 
+#include "../../utils/cleanup.h"
+
 /*  Fair-queuer. Retrieves messages from a set of pipes in round-robin
     manner. */
 
@@ -46,5 +48,8 @@ void nn_fq_rm (struct nn_fq *self, struct nn_fq_data *data);
 void nn_fq_in (struct nn_fq *self, struct nn_fq_data *data);
 int nn_fq_can_recv (struct nn_fq *self);
 int nn_fq_recv (struct nn_fq *self, struct nn_msg *msg, struct nn_pipe **pipe);
+
+void nn_fq_clear (struct nn_fq *self, enum nn_cleanup_opt cleanopt,
+    void (*dtor)(struct nn_list_item *it, enum nn_cleanup_opt cleanopt));
 
 #endif

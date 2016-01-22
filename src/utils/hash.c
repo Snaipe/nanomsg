@@ -162,3 +162,22 @@ void nn_hash_item_term (struct nn_hash_item *self)
     nn_list_item_term (&self->list);
 }
 
+void nn_hash_clear (struct nn_hash *self, enum nn_cleanup_opt cleanopt,
+    void (*dtor)(struct nn_hash_item *, enum nn_cleanup_opt cleanopt))
+{
+    uint32_t i;
+    struct nn_list_item *it;
+    struct nn_hash_item *item;
+
+    for (i = 0; i != self->slots; ++i) {
+        for (it = nn_list_begin (&self->array [i]);
+              it != nn_list_end (&self->array [i]);
+              it = nn_list_next (&self->array [i], it)) {
+            item = nn_cont (it, struct nn_hash_item, list);
+            if (dtor)
+                dtor(item, cleanopt);
+        }
+        nn_list_clear (&self->array [i], 0, NULL);
+    }
+    self->items = 0;
+}

@@ -86,3 +86,8 @@ int nn_lb_send (struct nn_lb *self, struct nn_msg *msg, struct nn_pipe **to)
     return rc & ~NN_PIPE_RELEASE;
 }
 
+void nn_lb_clear (struct nn_lb *self, enum nn_cleanup_opt cleanopt,
+    void (*dtor)(struct nn_list_item *it, enum nn_cleanup_opt cleanopt))
+{
+    nn_priolist_clear(&self->priolist, cleanopt, dtor);
+}

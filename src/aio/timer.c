@@ -64,8 +64,10 @@ void nn_timer_term (struct nn_timer *self, enum nn_cleanup_opt cleanopt)
 
     nn_fsm_event_term (&self->done);
     nn_worker_timer_term (&self->wtimer);
-    nn_worker_task_term (&self->stop_task);
-    nn_worker_task_term (&self->start_task);
+    if (nn_fast (!(cleanopt & NN_CLEAN_EMPTY))) {
+        nn_worker_task_term (&self->stop_task);
+        nn_worker_task_term (&self->start_task);
+    }
     nn_fsm_term (&self->fsm, cleanopt);
 }
 

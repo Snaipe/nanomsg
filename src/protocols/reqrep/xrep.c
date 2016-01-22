@@ -67,8 +67,18 @@ void nn_xrep_init (struct nn_xrep *self, const struct nn_sockbase_vfptr *vfptr,
     nn_fq_init (&self->inpipes);
 }
 
+static void nn_release_xrep_data (struct nn_hash_item *it,
+    enum nn_cleanup_opt cleanopt)
+{
+    nn_free (nn_cont (it, struct nn_xrep_data, outitem));
+}
+
 void nn_xrep_term (struct nn_xrep *self, enum nn_cleanup_opt cleanopt)
 {
+    if (nn_slow (cleanopt & NN_CLEAN_EMPTY)) {
+        nn_fq_clear (&self->inpipes, cleanopt, NULL);
+        nn_hash_clear (&self->outpipes, cleanopt, nn_release_xrep_data);
+    }
     nn_fq_term (&self->inpipes);
     nn_hash_term (&self->outpipes);
     nn_sockbase_term (&self->sockbase);

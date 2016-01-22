@@ -178,3 +178,17 @@ void nn_priolist_advance (struct nn_priolist *self, int release)
 int nn_priolist_get_priority (struct nn_priolist *self) {
     return self->current;
 }
+
+void nn_priolist_clear (struct nn_priolist *self, enum nn_cleanup_opt cleanopt,
+    void (*dtor)(struct nn_list_item *it, enum nn_cleanup_opt cleanopt))
+{
+    size_t i;
+    for (i = 0; i < NN_PRIOLIST_SLOTS; ++i) {
+        if (nn_list_empty(&self->slots [i].pipes))
+            continue;
+
+        nn_list_clear (&self->slots [i].pipes, cleanopt, dtor);
+        self->slots [i].current = NULL;
+    }
+    self->current = -1;
+}

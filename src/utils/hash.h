@@ -25,6 +25,7 @@
 
 #include "list.h"
 #include "int.h"
+#include "cleanup.h"
 
 #include <stddef.h>
 
@@ -66,5 +67,9 @@ void nn_hash_item_init (struct nn_hash_item *self);
 /*  Terminate a hash item. The item must not be in a hash table prior to
     this call. */
 void nn_hash_item_term (struct nn_hash_item *self);
+
+/*  Removes and releases all items in the hash table */
+void nn_hash_clear (struct nn_hash *self, enum nn_cleanup_opt cleanopt,
+    void (*dtor)(struct nn_hash_item *, enum nn_cleanup_opt cleanopt));
 
 #endif

@@ -27,6 +27,8 @@
 
 #include "priolist.h"
 
+#include "../../utils/cleanup.h"
+
 /*  A load balancer. Round-robins messages to a set of pipes. */
 
 struct nn_lb_data {
@@ -46,5 +48,8 @@ void nn_lb_out (struct nn_lb *self, struct nn_lb_data *data);
 int nn_lb_can_send (struct nn_lb *self);
 int nn_lb_get_priority (struct nn_lb *self);
 int nn_lb_send (struct nn_lb *self, struct nn_msg *msg, struct nn_pipe **to);
+
+void nn_lb_clear (struct nn_lb *self, enum nn_cleanup_opt cleanopt,
+    void (*dtor)(struct nn_list_item *it, enum nn_cleanup_opt cleanopt));
 
 #endif
