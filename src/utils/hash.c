@@ -171,13 +171,15 @@ void nn_hash_clear (struct nn_hash *self, enum nn_cleanup_opt cleanopt,
 
     for (i = 0; i != self->slots; ++i) {
         for (it = nn_list_begin (&self->array [i]);
-              it != nn_list_end (&self->array [i]);
-              it = nn_list_next (&self->array [i], it)) {
+              it != nn_list_end (&self->array [i]); ) {
+
+            struct nn_list_item *next = nn_list_erase(&self->array [i], it);
             item = nn_cont (it, struct nn_hash_item, list);
+            nn_hash_item_term (item);
             if (dtor)
                 dtor(item, cleanopt);
+            it = next;
         }
-        nn_list_clear (&self->array [i], 0, NULL);
     }
     self->items = 0;
 }
