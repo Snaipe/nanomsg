@@ -109,6 +109,8 @@ NANOMSG_UTILS = \
     src/utils/clock.c \
     src/utils/closefd.h \
     src/utils/closefd.c \
+    src/utils/cond.h \
+    src/utils/cond.c \
     src/utils/cont.h \
     src/utils/efd.h \
     src/utils/efd.c \
