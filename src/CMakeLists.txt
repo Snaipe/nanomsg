@@ -95,6 +95,8 @@ set (NN_SOURCES
     utils/clock.c
     utils/closefd.h
     utils/closefd.c
+    utils/cond.h
+    utils/cond.c
     utils/cont.h
     utils/efd.h
     utils/efd.c

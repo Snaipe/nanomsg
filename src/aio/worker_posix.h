@@ -27,7 +27,7 @@
 #include "../utils/thread.h"
 #include "../utils/efd.h"
 #include "../utils/cleanup.h"
-#include "../utils/sem.h"
+#include "../utils/cond.h"
 
 #include "poller.h"
 
@@ -61,8 +61,13 @@ struct nn_worker {
     struct nn_poller_hndl efd_hndl;
     struct nn_timerset timerset;
     struct nn_thread thread;
-    struct nn_sem pause_sem;
-    struct nn_sem resume_sem;
+
+    struct nn_cond resume_cond;
+    struct nn_mutex resume_mutex;
+    struct nn_cond pause_cond;
+    struct nn_mutex pause_mutex;
+    volatile int paused;
+    volatile int resumed;
 };
 
 void nn_worker_add_fd (struct nn_worker *self, int s, struct nn_worker_fd *fd);

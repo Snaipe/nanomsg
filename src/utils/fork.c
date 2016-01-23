@@ -64,10 +64,8 @@ static void nn_postfork_child_reset (void)
     nn_global_unlock_all_sockets ();
     nn_glock_unlock ();
 
-    /* This actually won't resume the thread, but simply release
-       the lock */
-    nn_sem_post (&w->pause_sem);
-    nn_worker_resume (w);
+    /* Don't try to resume the dead thread, but simply release the lock */
+    nn_mutex_unlock (&w->resume_mutex);
     nn_worker_term (w, NN_CLEAN_RESET_UNSAFE);
 
     nn_global_postfork_cleanup ();
