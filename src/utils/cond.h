@@ -29,11 +29,13 @@
 #include <pthread.h>
 #endif
 
+#ifdef NN_HAVE_WINDOWS
+struct nn_cond;
+#else
 struct nn_cond {
-#ifndef NN_HAVE_WINDOWS
     pthread_cond_t cond;
-#endif
 };
+#endif
 
 void nn_cond_init (struct nn_cond *self);
 void nn_cond_term (struct nn_cond *self);
