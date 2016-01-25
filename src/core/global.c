@@ -45,6 +45,7 @@
 #include "../utils/msg.h"
 #include "../utils/attr.h"
 #include "../utils/fork.h"
+#include "../utils/atomic.h"
 
 #include "../transports/inproc/inproc.h"
 #include "../transports/ipc/ipc.h"
@@ -155,8 +156,11 @@ struct nn_global {
     char hostname[64];
     char appname[64];
 
-    /* Forked status */
-    int forked;
+#ifndef NN_HAVE_WINDOWS
+    struct nn_mutex fork_sync;
+    volatile int fork_lock;
+    struct nn_atomic io_operations;
+#endif
 };
 
 /*  Singleton object containing the global state of the library. */
@@ -189,6 +193,10 @@ static int nn_global_hold_socket(struct nn_sock **sockp, int s);
 static int nn_global_hold_socket_locked(struct nn_sock **sockp, int s);
 static void nn_global_rele_socket(struct nn_sock *);
 
+/*  Pending fork locks  */
+static void nn_global_lock_if_forked (void);
+static void nn_global_unlock_if_forked (void);
+
 int nn_errno (void)
 {
     return nn_err_errno ();
@@ -213,9 +221,6 @@ static void nn_global_init (void)
     /*  Check whether the library was already initialised. If so, do nothing. */
     if (self.socks)
         return;
-
-    /* Reset forked status */
-    self.forked = 0;
 
     /*  On Windows, initialise the socket library. */
 #if defined NN_HAVE_WINDOWS
@@ -291,6 +296,9 @@ static void nn_global_init (void)
 #ifndef NN_HAVE_WINDOWS
     /* Register atfork handlers */
     errno_assert(nn_setup_atfork_handlers () == 0);
+    nn_mutex_init (&self.fork_sync);
+    nn_atomic_init (&self.io_operations, 0);
+    self.fork_lock = 0;
 #endif
 
     /*  Start the worker threads. */
@@ -367,8 +375,7 @@ static void nn_global_term (void)
     nn_ctx_leave (&self.ctx);
 
     /*  Shut down the worker threads. */
-    if (!self.forked)
-        nn_pool_term (&self.pool);
+    nn_pool_term (&self.pool);
 
     /* Terminate ctx mutex */
     nn_ctx_term (&self.ctx);
@@ -690,21 +697,27 @@ int nn_bind (int s, const char *addr)
     int rc;
     struct nn_sock *sock;
 
+    nn_global_lock_if_forked ();
+
     rc = nn_global_hold_socket (&sock, s);
     if (rc < 0) {
-        errno = -rc;
-        return -1;
+        goto failure;
     }
 
     rc = nn_global_create_ep (sock, addr, 1);
     if (nn_slow (rc < 0)) {
         nn_global_rele_socket (sock);
-        errno = -rc;
-        return -1;
+        goto failure;
     }
 
     nn_global_rele_socket (sock);
+    nn_global_unlock_if_forked ();
     return rc;
+
+failure:
+    nn_global_unlock_if_forked ();
+    errno = -rc;
+    return -1;
 }
 
 int nn_connect (int s, const char *addr)
@@ -712,21 +725,27 @@ int nn_connect (int s, const char *addr)
     int rc;
     struct nn_sock *sock;
 
+    nn_global_lock_if_forked ();
+
     rc = nn_global_hold_socket (&sock, s);
     if (nn_slow (rc < 0)) {
-        errno = -rc;
-        return -1;
+        goto failure;
     }
 
     rc = nn_global_create_ep (sock, addr, 0);
     if (rc < 0) {
         nn_global_rele_socket (sock);
-        errno = -rc;
-        return -1;
+        goto failure;
     }
 
     nn_global_rele_socket (sock);
+    nn_global_unlock_if_forked ();
     return rc;
+
+failure:
+    nn_global_unlock_if_forked ();
+    errno = -rc;
+    return -1;
 }
 
 int nn_shutdown (int s, int how)
@@ -734,22 +753,28 @@ int nn_shutdown (int s, int how)
     int rc;
     struct nn_sock *sock;
 
+    nn_global_lock_if_forked ();
+
     rc = nn_global_hold_socket (&sock, s);
     if (nn_slow (rc < 0)) {
-        errno = -rc;
-        return -1;
+        goto failure;
     }
 
     rc = nn_sock_rm_ep (sock, how);
     if (nn_slow (rc < 0)) {
         nn_global_rele_socket (sock);
-        errno = -rc;
-        return -1;
+        goto failure;
     }
     nn_assert (rc == 0);
 
     nn_global_rele_socket (sock);
+    nn_global_unlock_if_forked ();
     return 0;
+
+failure:
+    nn_global_unlock_if_forked ();
+    errno = -rc;
+    return -1;
 }
 
 int nn_send (int s, const void *buf, size_t len, int flags)
@@ -797,8 +822,11 @@ int nn_sendmsg (int s, const struct nn_msghdr *msghdr, int flags)
     struct nn_cmsghdr *cmsg;
     struct nn_sock *sock;
 
+    nn_global_lock_if_forked ();
+
     rc = nn_global_hold_socket (&sock, s);
     if (nn_slow (rc < 0)) {
+        nn_global_unlock_if_forked ();
         errno = -rc;
         return -1;
     }
@@ -914,11 +942,13 @@ int nn_sendmsg (int s, const struct nn_msghdr *msghdr, int flags)
     nn_sock_stat_increment (sock, NN_STAT_BYTES_SENT, sz);
 
     nn_global_rele_socket (sock);
+    nn_global_unlock_if_forked ();
 
     return (int) sz;
 
 fail:
     nn_global_rele_socket (sock);
+    nn_global_unlock_if_forked ();
 
     errno = -rc;
     return -1;
@@ -941,8 +971,11 @@ int nn_recvmsg (int s, struct nn_msghdr *msghdr, int flags)
     struct nn_cmsghdr *chdr;
     struct nn_sock *sock;
 
+    nn_global_lock_if_forked ();
+
     rc = nn_global_hold_socket (&sock, s);
     if (nn_slow (rc < 0)) {
+        nn_global_unlock_if_forked ();
         errno = -rc;
         return -1;
     }
@@ -1047,11 +1080,13 @@ int nn_recvmsg (int s, struct nn_msghdr *msghdr, int flags)
     nn_sock_stat_increment (sock, NN_STAT_BYTES_RECEIVED, sz);
 
     nn_global_rele_socket (sock);
+    nn_global_unlock_if_forked ();
 
     return (int) sz;
 
 fail:
     nn_global_rele_socket (sock);
+    nn_global_unlock_if_forked ();
 
     errno = -rc;
     return -1;
@@ -1530,8 +1565,6 @@ int nn_global_postfork_cleanup ()
     int i;
     nn_assert(nn_is_glock_held());
 
-    self.forked = 1;
-
     if (self.socks && self.nsocks) {
         for (i = 0; i != NN_MAX_SOCKETS; ++i)
             if (self.socks [i]) {
@@ -1544,4 +1577,31 @@ int nn_global_postfork_cleanup ()
             }
     }
     nn_global_term();
+}
+
+void nn_global_fork_lock (void)
+{
+    self.fork_lock = 1;
+    while (self.io_operations.n != 0);
+    nn_mutex_lock (&self.fork_sync);
+}
+
+void nn_global_fork_unlock (void)
+{
+    nn_mutex_unlock (&self.fork_sync);
+    self.fork_lock = 0;
+}
+
+static void nn_global_lock_if_forked (void)
+{
+    nn_atomic_inc (&self.io_operations, 1);
+    if (nn_slow (self.fork_lock))
+        nn_mutex_lock (&self.fork_sync);
+}
+
+static void nn_global_unlock_if_forked (void)
+{
+    nn_atomic_dec (&self.io_operations, 1);
+    if (nn_slow (self.fork_lock))
+        nn_mutex_unlock (&self.fork_sync);
 }
