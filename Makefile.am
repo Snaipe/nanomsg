@@ -511,9 +511,12 @@ FEATURE_TESTS = \
     tests/separation \
     tests/zerocopy \
     tests/shutdown \
-    tests/fork \
     tests/cmsg \
     tests/bug328
+
+if FORK_STRATEGY
+FEATURE_TESTS += tests/fork
+endif #FORK_STRATEGY
 
 EXTRA_DIST += tests/testutil.h
 

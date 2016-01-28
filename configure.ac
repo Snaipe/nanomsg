@@ -316,6 +316,16 @@ AS_IF([test x"$enable_getaddrinfo_a" == "xno"], [
     AC_DEFINE([NN_DISABLE_GETADDRINFO_A])
 ])
 
+# Define fork strategies
+AC_ARG_WITH([fork-strategy],
+    AS_HELP_STRING([--with-fork-strategy=STRATEGY], [Use the specified at-fork strategy (possible values: none, reset) [default=none]]),
+    [],
+    [with_fork_strategy="none"]
+)
+AS_IF([test x"$with_fork_strategy" == "xreset"], [
+    AC_DEFINE([NN_RESET_AFTER_FORK])
+])
+AM_CONDITIONAL([FORK_STRATEGY], [test x"$with_fork_strategy" != "xnone" ])
 
 AC_SEARCH_LIBS([socketpair], [], [
     AC_DEFINE([NN_HAVE_SOCKETPAIR])
