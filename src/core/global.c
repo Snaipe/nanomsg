@@ -2,6 +2,7 @@
     Copyright (c) 2012-2014 Martin Sustrik  All rights reserved.
     Copyright (c) 2013 GoPivotal, Inc.  All rights reserved.
     Copyright 2015 Garrett D'Amore <garrett@damore.org>
+    Copyright (c) 2016 Franklin "Snaipe" Mathieu <franklinmathieu@gmail.com>
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"),
@@ -43,6 +44,8 @@
 #include "../utils/chunk.h"
 #include "../utils/msg.h"
 #include "../utils/attr.h"
+#include "../utils/fork.h"
+#include "../utils/cond.h"
 
 #include "../transports/inproc/inproc.h"
 #include "../transports/ipc/ipc.h"
@@ -152,6 +155,15 @@ struct nn_global {
     /*  Application name for statistics  */
     char hostname[64];
     char appname[64];
+
+#ifndef NN_HAVE_WINDOWS
+    volatile int fork_lock;
+    struct nn_mutex fork_sync;
+    struct nn_cond fork_cond;
+    volatile uint32_t io_operations;
+    struct nn_mutex ioop_sync;
+    struct nn_cond ioop_cond;
+#endif
 };
 
 /*  Singleton object containing the global state of the library. */
@@ -279,6 +291,17 @@ static void nn_global_init (void)
     nn_global_add_socktype (nn_xsurveyor_socktype);
     nn_global_add_socktype (nn_bus_socktype);
     nn_global_add_socktype (nn_xbus_socktype);
+
+#ifndef NN_HAVE_WINDOWS
+    /* Register atfork handlers */
+    errno_assert(nn_setup_atfork_handlers () == 0);
+    nn_mutex_init (&self.fork_sync);
+    nn_mutex_init (&self.ioop_sync);
+    nn_cond_init (&self.fork_cond);
+    nn_cond_init (&self.ioop_cond);
+    self.io_operations = 0;
+    self.fork_lock = 0;
+#endif
 
     /*  Start the worker threads. */
     nn_pool_init (&self.pool);
@@ -678,19 +701,21 @@ int nn_bind (int s, const char *addr)
 
     rc = nn_global_hold_socket (&sock, s);
     if (rc < 0) {
-        errno = -rc;
-        return -1;
+        goto failure;
     }
 
     rc = nn_global_create_ep (sock, addr, 1);
     if (nn_slow (rc < 0)) {
         nn_global_rele_socket (sock);
-        errno = -rc;
-        return -1;
+        goto failure;
     }
 
     nn_global_rele_socket (sock);
     return rc;
+
+failure:
+    errno = -rc;
+    return -1;
 }
 
 int nn_connect (int s, const char *addr)
@@ -700,19 +725,21 @@ int nn_connect (int s, const char *addr)
 
     rc = nn_global_hold_socket (&sock, s);
     if (nn_slow (rc < 0)) {
-        errno = -rc;
-        return -1;
+        goto failure;
     }
 
     rc = nn_global_create_ep (sock, addr, 0);
     if (rc < 0) {
         nn_global_rele_socket (sock);
-        errno = -rc;
-        return -1;
+        goto failure;
     }
 
     nn_global_rele_socket (sock);
     return rc;
+
+failure:
+    errno = -rc;
+    return -1;
 }
 
 int nn_shutdown (int s, int how)
@@ -722,20 +749,22 @@ int nn_shutdown (int s, int how)
 
     rc = nn_global_hold_socket (&sock, s);
     if (nn_slow (rc < 0)) {
-        errno = -rc;
-        return -1;
+        goto failure;
     }
 
     rc = nn_sock_rm_ep (sock, how);
     if (nn_slow (rc < 0)) {
         nn_global_rele_socket (sock);
-        errno = -rc;
-        return -1;
+        goto failure;
     }
     nn_assert (rc == 0);
 
     nn_global_rele_socket (sock);
     return 0;
+
+failure:
+    errno = -rc;
+    return -1;
 }
 
 int nn_send (int s, const void *buf, size_t len, int flags)
@@ -1464,4 +1493,66 @@ void nn_global_rele_socket(struct nn_sock *sock)
     nn_glock_lock();
     nn_sock_rele(sock);
     nn_glock_unlock();
+}
+
+void nn_global_lock_all_sockets (void)
+{
+    int i;
+    nn_assert(nn_is_glock_held());
+
+    nn_ctx_enter (&self.ctx);
+    if (self.socks && self.nsocks) {
+        for (i = 0; i != NN_MAX_SOCKETS; ++i)
+            if (self.socks [i])
+                nn_ctx_enter (nn_sock_getctx (self.socks [i]));
+    }
+}
+
+void nn_global_reset_all_socket_locks (void)
+{
+    int i;
+    struct nn_ctx *ctx;
+    nn_assert(nn_is_glock_held());
+
+    nn_mutex_reset (&self.ctx.sync);
+    if (self.socks && self.nsocks) {
+        for (i = 0; i != NN_MAX_SOCKETS; ++i)
+            if (self.socks [i]) {
+                ctx = nn_sock_getctx (self.socks [i]);
+                nn_mutex_reset (&ctx->sync);
+            }
+    }
+}
+
+void nn_global_unlock_all_sockets (void)
+{
+    int i;
+    nn_assert(nn_is_glock_held());
+
+    if (self.socks && self.nsocks) {
+        for (i = 0; i != NN_MAX_SOCKETS; ++i)
+            if (self.socks [i])
+                nn_ctx_leave (nn_sock_getctx (self.socks [i]));
+    }
+    nn_ctx_leave (&self.ctx);
+}
+
+int nn_global_postfork_cleanup ()
+{
+    int i;
+    nn_assert(nn_is_glock_held());
+
+    if (self.socks && self.nsocks) {
+        for (i = 0; i != NN_MAX_SOCKETS; ++i)
+            if (self.socks [i]) {
+                nn_sock_stop (self.socks [i]);
+                while (self.socks [i]->holds > 0)
+                    nn_sock_rele (self.socks [i]);
+                nn_sock_term (self.socks [i]);
+                nn_free (self.socks [i]);
+                self.socks [i] = NULL;
+                self.nsocks--;
+            }
+    }
+    nn_global_term();
 }

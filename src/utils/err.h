@@ -40,6 +40,23 @@
 #define NN_NORETURN
 #endif
 
+#if defined NN_HAVE_BACKTRACE_SYMBOLS_FD
+#include <execinfo.h>
+
+#define NN_PRINT_BACKTRACE \
+    do {\
+        void *bt[10]; \
+        size_t size = backtrace (bt, 10); \
+        backtrace_symbols_fd (bt, size, 2); \
+    } while (0)
+#else
+#define NN_PRINT_BACKTRACE \
+    do {\
+        fprintf(stderr, "No backtrace.\n");\
+        fflush(stderr);\
+    } while (0)
+#endif
+
 /*  Same as system assert(). However, under Win32 assert has some deficiencies.
     Thus this macro. */
 #define nn_assert(x) \
@@ -48,6 +65,7 @@
             fprintf (stderr, "Assertion failed: %s (%s:%d)\n", #x, \
                 __FILE__, __LINE__);\
             fflush (stderr);\
+            NN_PRINT_BACKTRACE; \
             nn_err_abort ();\
         }\
     } while (0)
@@ -60,6 +78,7 @@
                 (obj)->state, #state_name, \
                 __FILE__, __LINE__);\
             fflush (stderr);\
+            NN_PRINT_BACKTRACE; \
             nn_err_abort ();\
         }\
     } while (0)
@@ -71,6 +90,7 @@
             fprintf (stderr, "Out of memory (%s:%d)\n",\
                 __FILE__, __LINE__);\
             fflush (stderr);\
+            NN_PRINT_BACKTRACE; \
             nn_err_abort ();\
         }\
     } while (0)
@@ -82,6 +102,7 @@
             fprintf (stderr, "%s [%d] (%s:%d)\n", nn_err_strerror (errno),\
                 (int) errno, __FILE__, __LINE__);\
             fflush (stderr);\
+            NN_PRINT_BACKTRACE; \
             nn_err_abort ();\
         }\
     } while (0)
@@ -93,6 +114,7 @@
             fprintf (stderr, "%s [%d] (%s:%d)\n", nn_err_strerror (err),\
                 (int) (err), __FILE__, __LINE__);\
             fflush (stderr);\
+            NN_PRINT_BACKTRACE; \
             nn_err_abort ();\
         }\
     } while (0)
@@ -106,6 +128,7 @@
             fprintf (stderr, "%s [%d] (%s:%d)\n",\
                 errstr, (int) GetLastError (), __FILE__, __LINE__);\
             fflush (stderr);\
+            NN_PRINT_BACKTRACE; \
             nn_err_abort ();\
         }\
     } while (0)
@@ -119,6 +142,7 @@
             fprintf (stderr, "%s [%d] (%s:%d)\n",\
                 errstr, (int) WSAGetLastError (), __FILE__, __LINE__);\
             fflush (stderr);\
+            NN_PRINT_BACKTRACE; \
             nn_err_abort ();\
         }\
     } while (0)
@@ -129,6 +153,7 @@
         fprintf (stderr, "%s: state=%d source=%d action=%d (%s:%d)\n", \
             message, state, src, type, __FILE__, __LINE__);\
         fflush (stderr);\
+        NN_PRINT_BACKTRACE; \
         nn_err_abort ();\
     } while (0)
 

@@ -1,5 +1,6 @@
 /*
     Copyright (c) 2012-2013 Martin Sustrik  All rights reserved.
+    Copyright (c) 2016 Franklin "Snaipe" Mathieu <franklinmathieu@gmail.com>
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"),
@@ -49,6 +50,9 @@ void nn_poller_reset_out (struct nn_poller *self, struct nn_poller_hndl *hndl);
 int nn_poller_wait (struct nn_poller *self, int timeout);
 int nn_poller_event (struct nn_poller *self, int *event,
     struct nn_poller_hndl **hndl);
+
+void nn_poller_revive (struct nn_poller *self);
+int nn_poller_reinit (struct nn_poller *self);
 
 #endif
 

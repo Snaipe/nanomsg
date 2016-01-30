@@ -109,6 +109,8 @@ NANOMSG_UTILS = \
     src/utils/clock.c \
     src/utils/closefd.h \
     src/utils/closefd.c \
+    src/utils/cond.h \
+    src/utils/cond.c \
     src/utils/cont.h \
     src/utils/efd.h \
     src/utils/efd.c \
@@ -124,6 +126,8 @@ NANOMSG_UTILS = \
     src/utils/err.c \
     src/utils/fast.h \
     src/utils/fd.h \
+    src/utils/fork.h \
+    src/utils/fork.c \
     src/utils/glock.h \
     src/utils/glock.c \
     src/utils/hash.h \
@@ -509,6 +513,10 @@ FEATURE_TESTS = \
     tests/shutdown \
     tests/cmsg \
     tests/bug328
+
+if FORK_STRATEGY
+FEATURE_TESTS += tests/fork
+endif #FORK_STRATEGY
 
 EXTRA_DIST += tests/testutil.h
 
