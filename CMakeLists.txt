@@ -316,18 +316,6 @@ add_libnanomsg_perf (remote_thr)
 
 #  NSIS package
 
-install (FILES src/nn.h DESTINATION include/nanomsg)
-install (FILES src/inproc.h DESTINATION include/nanomsg)
-install (FILES src/ipc.h DESTINATION include/nanomsg)
-install (FILES src/tcp.h DESTINATION include/nanomsg)
-install (FILES src/ws.h DESTINATION include/nanomsg)
-install (FILES src/pair.h DESTINATION include/nanomsg)
-install (FILES src/pubsub.h DESTINATION include/nanomsg)
-install (FILES src/reqrep.h DESTINATION include/nanomsg)
-install (FILES src/pipeline.h DESTINATION include/nanomsg)
-install (FILES src/survey.h DESTINATION include/nanomsg)
-install (FILES src/bus.h DESTINATION include/nanomsg)
-
 if (BUILD_NANOCAT)
     install (TARGETS nanocat RUNTIME DESTINATION bin)
 endif()

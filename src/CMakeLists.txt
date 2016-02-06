@@ -391,6 +391,18 @@ else ()
     message (FATAL_ERROR "Assertion failed; this path is unreachable.")
 endif ()
 
+install (FILES "nn.h" DESTINATION include/nanomsg)
+install (FILES "inproc.h" DESTINATION include/nanomsg)
+install (FILES "ipc.h" DESTINATION include/nanomsg)
+install (FILES "tcp.h" DESTINATION include/nanomsg)
+install (FILES "ws.h" DESTINATION include/nanomsg)
+install (FILES "pair.h" DESTINATION include/nanomsg)
+install (FILES "pubsub.h" DESTINATION include/nanomsg)
+install (FILES "reqrep.h" DESTINATION include/nanomsg)
+install (FILES "pipeline.h" DESTINATION include/nanomsg)
+install (FILES "survey.h" DESTINATION include/nanomsg)
+install (FILES "bus.h" DESTINATION include/nanomsg)
+
 install (TARGETS ${PROJECT_NAME}
     ARCHIVE DESTINATION lib
     LIBRARY DESTINATION lib
