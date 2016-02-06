@@ -363,10 +363,10 @@ endforeach ()
 
 if (NN_STATIC_LIB)
     add_library (${PROJECT_NAME} STATIC ${NN_SOURCES})
-    target_compile_options (${PROJECT_NAME} PUBLIC -DNN_STATIC_LIB)
+    add_definitions (-DNN_STATIC_LIB)
 else ()
     add_library (${PROJECT_NAME} SHARED ${NN_SOURCES})
-    target_compile_options (${PROJECT_NAME} PUBLIC -DNN_SHARED_LIB)
+    add_definitions (-DNN_SHARED_LIB)
     set_target_properties ("${PROJECT_NAME}" PROPERTIES
         VERSION "${NN_PACKAGE_VERSION}"
         SOVERSION "${NN_ABI_VERSION}")

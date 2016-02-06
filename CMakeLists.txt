@@ -22,8 +22,7 @@
 #   IN THE SOFTWARE.
 #
 
-cmake_minimum_required (VERSION 2.8.12)
-include (CheckIncludeFiles)
+cmake_minimum_required (VERSION 2.8.7)
 include (CheckSymbolExists)
 include (CheckLibraryExists)
 include (CheckFunctionExists)
@@ -46,6 +45,18 @@ if ((NN_VERSION_CURRENT STREQUAL "") OR (NN_VERSION_REVISION STREQUAL "") OR (NN
 else ()
     set (NN_ABI_VERSION "${NN_VERSION_CURRENT}.${NN_VERSION_REVISION}.${NN_VERSION_AGE}")
     message (STATUS "Detected nanomsg ABI v${NN_ABI_VERSION}")
+endif ()
+
+# if cmake < 2.8.12
+if (CMAKE_MAJOR_VERSION LESS 3 AND CMAKE_MINOR_VERSION LESS 9 AND CMAKE_PATCH_VERSION LESS 13)
+    macro (check_include_file _HEADER _VAR)
+        check_c_source_compiles ("
+            #include <${_HEADER}>
+            int main() { return 0; }
+        " "${_VAR}")
+    endmacro ()
+else ()
+    include (CheckIncludeFiles)
 endif ()
 
 # User-defined options.
