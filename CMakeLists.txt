@@ -27,6 +27,7 @@ include (CheckSymbolExists)
 include (CheckLibraryExists)
 include (CheckFunctionExists)
 include (CheckCSourceCompiles)
+include (CheckCCompilerFlag)
 
 project (nanomsg C)
 enable_testing ()
@@ -108,6 +109,8 @@ else ()
 endif ()
 
 # Compiler checks.
+
+check_c_compiler_flag ("-fPIC -Werror" NN_HAVE_FPIC)
 
 if (CMAKE_C_COMPILER_ID MATCHES "GNU")
     add_definitions (-DNN_HAVE_GCC)
