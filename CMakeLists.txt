@@ -285,7 +285,7 @@ add_libnanomsg_test (shutdown)
 add_libnanomsg_test (cmsg)
 add_libnanomsg_test (bug328)
 
-if (NOT NN_HAVE_WINDOWS AND NOT NN_FORK_STRATEGY MATCHES "none")
+if (NOT WIN32 AND NOT NN_FORK_STRATEGY MATCHES "none")
     add_libnanomsg_test (fork)
 endif ()
 

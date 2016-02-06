@@ -277,7 +277,7 @@ else ()
     message (FATAL_ERROR "Assertion failed; this path is unreachable.")
 endif ()
 
-if (NOT NN_HAVE_WINDOWS)
+if (NOT WIN32)
     list (APPEND NN_SOURCES
         utils/fork.h
         utils/fork.c
