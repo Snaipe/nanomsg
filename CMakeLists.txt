@@ -54,6 +54,12 @@ option (WS_AUTOBAHN_TESTS "Enable Autobahn TestSuite test for WebSocket transpor
 option (ENABLE_NANOCAT "Enable building nanocat utility." OFF)
 option (NN_STATIC_LIB "Build static library instead of shared library." OFF)
 option (ENABLE_GETADDRINFO_A "Enable/disable use of getaddrinfo_a in place of getaddrinfo." ON)
+option (NN_FORK_STRATEGY "Specify the at-fork strategy (possible values: none, reset)" "none")
+option (NN_TESTS "Enable/disable tests" ON)
+
+if (NN_FORK_STRATEGY MATCHES "reset")
+    add_definitions (-DNN_RESET_AFTER_FORK)
+endif ()
 
 #  Platform checks.
 
@@ -220,6 +226,10 @@ endif ()
 set (all_tests "")
 
 macro (add_libnanomsg_test NAME)
+    if (NOT NN_TESTS)
+        return()
+    endif ()
+
     list (APPEND all_tests ${NAME})
     add_executable (${NAME} tests/${NAME}.c)
     target_link_libraries (${NAME} ${PROJECT_NAME})
@@ -271,6 +281,10 @@ add_libnanomsg_test (zerocopy)
 add_libnanomsg_test (shutdown)
 add_libnanomsg_test (cmsg)
 add_libnanomsg_test (bug328)
+
+if (NOT NN_HAVE_WINDOWS AND NOT NN_FORK_STRATEGY MATCHES "none")
+    add_libnanomsg_test (fork)
+endif ()
 
 #  Build the performance tests.
 

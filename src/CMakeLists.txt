@@ -75,6 +75,8 @@ set (NN_SOURCES
     utils/clock.c
     utils/closefd.h
     utils/closefd.c
+    utils/cond.h
+    utils/cond.c
     utils/cont.h
     utils/efd.h
     utils/efd.c
@@ -273,6 +275,13 @@ elseif (UNIX)
     )
 else ()
     message (FATAL_ERROR "Assertion failed; this path is unreachable.")
+endif ()
+
+if (NOT NN_HAVE_WINDOWS)
+    list (APPEND NN_SOURCES
+        utils/fork.h
+        utils/fork.c
+    )
 endif ()
 
 if (NN_HAVE_EPOLL)
