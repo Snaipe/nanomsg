@@ -101,6 +101,10 @@ endif ()
 
 check_c_compiler_flag ("-fPIC -Werror" NN_HAVE_FPIC)
 
+if (WIN32)
+    add_definitions (-D_WIN32_WINNT=0x0600)
+endif ()
+
 if (CMAKE_C_COMPILER_ID MATCHES "GNU")
     add_definitions (-DNN_HAVE_GCC)
 elseif (CMAKE_C_COMPILER_ID MATCHES "Intel")
