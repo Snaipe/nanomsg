@@ -23,14 +23,14 @@
 
 #include "poller.h"
 
-#if !defined NN_HAVE_WINDOWS
-
-#if defined NN_USE_POLL
-#include "poller_poll.inc"
-#elif defined NN_USE_EPOLL
-#include "poller_epoll.inc"
+#if defined NN_USE_EPOLL
+    #include "poller_epoll.inc"
 #elif defined NN_USE_KQUEUE
-#include "poller_kqueue.inc"
+    #include "poller_kqueue.inc"
+#elif defined NN_USE_POLL
+    #include "poller_poll.inc"
+#else
+    #error
 #endif
 
 #if !defined NN_USE_POLL && (defined NN_USE_EPOLL || defined NN_USE_KQUEUE)
@@ -81,6 +81,5 @@ void nn_poller_revive (struct nn_poller *self)
         it = next;
     }
 }
-#endif
 
 #endif
