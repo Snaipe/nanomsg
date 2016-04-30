@@ -369,6 +369,7 @@ if (NN_TESTS)
     add_libnanomsg_test (shutdown 5)
     add_libnanomsg_test (cmsg 5)
     add_libnanomsg_test (bug328 5)
+    add_libnanomsg_test (reqrep_multiple 5)
 
     # Platform-specific tests
     if (WIN32)
