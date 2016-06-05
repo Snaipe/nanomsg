@@ -64,10 +64,12 @@ void nn_xrep_init (struct nn_xrep *self, const struct nn_sockbase_vfptr *vfptr,
 
     nn_hash_init (&self->outpipes);
     nn_fq_init (&self->inpipes);
+    nn_mutex_init (&self->sync);
 }
 
 void nn_xrep_term (struct nn_xrep *self)
 {
+    nn_mutex_term (&self->sync);
     nn_fq_term (&self->inpipes);
     nn_hash_term (&self->outpipes);
     nn_sockbase_term (&self->sockbase);
@@ -102,11 +104,13 @@ int nn_xrep_add (struct nn_sockbase *self, struct nn_pipe *pipe)
     data->pipe = pipe;
     nn_hash_item_init (&data->outitem);
     data->flags = 0;
+    nn_mutex_lock(&xrep->sync);
     nn_hash_insert (&xrep->outpipes, xrep->next_key & 0x7fffffff,
         &data->outitem);
     ++xrep->next_key;
     nn_fq_add (&xrep->inpipes, &data->initem, pipe, rcvprio);
     nn_pipe_setdata (pipe, data);
+    nn_mutex_unlock(&xrep->sync);
 
     return 0;
 }
@@ -119,8 +123,10 @@ void nn_xrep_rm (struct nn_sockbase *self, struct nn_pipe *pipe)
     xrep = nn_cont (self, struct nn_xrep, sockbase);
     data = nn_pipe_getdata (pipe);
 
+    nn_mutex_lock(&xrep->sync);
     nn_fq_rm (&xrep->inpipes, &data->initem);
     nn_hash_erase (&xrep->outpipes, &data->outitem);
+    nn_mutex_unlock(&xrep->sync);
     nn_hash_item_term (&data->outitem);
 
     nn_free (data);
@@ -172,8 +178,10 @@ int nn_xrep_send (struct nn_sockbase *self, struct nn_msg *msg)
 
     /*  Find the appropriate pipe to send the message to. If there's none,
         or if it's not ready for sending, silently drop the message. */
+    nn_mutex_lock(&xrep->sync);
     data = nn_cont (nn_hash_get (&xrep->outpipes, key), struct nn_xrep_data,
         outitem);
+    nn_mutex_unlock(&xrep->sync);
     if (!data || !(data->flags & NN_XREP_OUT)) {
         nn_msg_term (msg);
         return 0;

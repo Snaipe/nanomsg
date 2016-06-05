@@ -26,6 +26,7 @@
 #include "../../protocol.h"
 
 #include "../../utils/hash.h"
+#include "../../utils/mutex.h"
 
 #include "../utils/fq.h"
 
@@ -52,6 +53,8 @@ struct nn_xrep {
 
     /*  Fair-queuer to get messages from. */
     struct nn_fq inpipes;
+
+    struct nn_mutex sync;
 };
 
 void nn_xrep_init (struct nn_xrep *self, const struct nn_sockbase_vfptr *vfptr,
